@@ -1,0 +1,141 @@
+---
+title: "Finding Plateaus"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Finding Plateaus}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+cpal <- paste0('#', c('003E51', '007DBA', 'FFFFFF', 'D6D2C4', 'B78B20'))
+```
+
+Along with this package, this vignette uses the `gratia` and `mgcv` packages for comparsons. I'll start with the first example from `mgcv`.
+
+```{r setup, results='hold', fig.width=5}
+# library(curvish)
+library(mgcv)
+library(gratia)
+library(ggplot2)
+
+
+#Below from ?gam
+set.seed(2) ## simulate some data... 
+d <- gamSim(1,n=200,dist="normal",scale=2)
+fit <- gam(y~s(x0)+s(x1)+s(x2)+s(x3),data=d, method = 'REML')
+summary(fit)
+par(mar=c(1,1,1,1))
+plot(fit,pages=1,residuals=TRUE)  ## show partial residuals
+plot(fit,pages=1,seWithMean=TRUE) ## `with intercept' CIs
+## run some basic model checks, including checking
+## smoothing basis dimensions...
+gam.check(fit)
+```
+
+# Derivatives
+
+```{r}
+eps = 1e-07
+res = 50
+fit <- gam(y~s(x2),data=d, method = 'REML')
+deriv_su <- gratia::derivatives(fit, term = 'x2', n = res, eps = eps, level = .95, 
+                                interval = 'simultaneous', unconditional = TRUE, n_sim = 10000)
+deriv_sc <- gratia::derivatives(fit, term = 'x2', n = res, eps = eps, level = .95, 
+                                interval = 'simultaneous', unconditional = FALSE, n_sim = 10000)
+deriv_cu <- gratia::derivatives(fit, term = 'x2', n = res, eps = eps, level = .95, 
+                                interval = 'confidence', unconditional = TRUE)
+deriv_cc <- gratia::derivatives(fit, term = 'x2', n = res, eps = eps, level = .95, 
+                                interval = 'confidence', unconditional = FALSE)
+```
+
+## Sources of uncertainty
+
+I'll start off by considering the important issue of simultaneous confidence
+intervals described in this [blog
+post](https://fromthebottomoftheheap.net/2014/06/16/simultaneous-confidence-intervals-for-derivatives/)
+by the author of the `gratia` package. Essentially, if we are to compare,
+point by point, the confidence interval, we need to correct for multiple
+comparisons. See below for how this changes the width of the interval around
+the first derivative plot. Also note how making the interval unconditional on
+the smooth terms slightly widens it. This is to add in the uncertainty about
+the exact shape of the smooth.
+
+The Bayesian method does not face this particular multiple comparison
+problem. I use the posterior of the derivative to compute the posterior for
+the difference between the derivative at a given age to the derivative at the
+age where the median posterior derivative is at its maximum (i.e., at `r sprintf('[INSERT HERE]')`
+years). I then compute the 95% credible interval for that statistic at each age.
+If at each age 95% of the posterior falls in a certain range, then we can also be sure that
+95% of the posterior across all ages falls in this range, so we are not inflating the probability
+that we make a mistake in deciding that this range includes the true region of steepest slope.
+
+In the plots below, you will notice that the more sources of uncertainty we account for
+in the ML models (that is, the non-Bayesian models), the wider the confidence regions
+are. The widest interval is when we account for the multiple tests (i.e., a test at each age
+we're interested in examining the derivative), and when we account for uncertainty in the
+exact shape of the spline. "Simul" refers to the use of simultaneous confidence intervals
+that account for multiple testing, whereas "Conf" refers to traditional confidence intervals.
+"Uncon" refers to intervals that are unconditional on the choice of shape of the spline and "Cond"
+refers to intervals that are conditional on the exact trajectory as estimated.
+
+The derivative of the Bayesian model falls somewhere in the middle, and has a slightly different shape.
+
+```{r}
+ggplot(deriv_su, aes(x = data, y = derivative)) + 
+  geom_ribbon(aes(ymin = lower, ymax = upper, color = 'Simul/Uncond', fill = 'Simul/Uncond'), alpha = .25) + 
+  geom_ribbon(data = deriv_sc, aes(ymin = lower, ymax = upper, color = 'Simul/Cond', fill = 'Simul/Cond'), alpha = .25) +
+  geom_ribbon(data = deriv_cu, aes(ymin = lower, ymax = upper, color = 'Conf/Uncond', fill = 'Conf/Uncond'), alpha = .25) +
+  geom_ribbon(data = deriv_cc, aes(ymin = lower, ymax = upper, color = 'Conf/Cond', fill = 'Conf/Cond'), alpha = .25) +
+  scale_color_manual(breaks = c('Simul/Uncond', 'Simul/Cond', 'Conf/Uncond', 'Conf/Cond', 'Bayes'),
+                     values = c(cpal[c(1:2, 4:5)], '#000000'),
+                     name = 'Type of interval') + 
+  scale_fill_manual(breaks = c('Simul/Uncond', 'Simul/Cond', 'Conf/Uncond', 'Conf/Cond', 'Bayes'),
+                     values = c(cpal[c(1:2, 4:5)], '#000000'),
+                     name = 'Type of interval') + 
+  labs(x = 'x2', y = 'y') + 
+  geom_line() + 
+  theme_minimal()
+```
+
+
+
+# Bayesian GAM and derivative
+
+Using brms.
+
+```{r}
+fit_b <- brms::brm(brms::bf(y ~ s(x0) + s(x1) + s(x2) + s(x3)), 
+                   data=d,
+                   chains = 4, cores = 4,
+                   iter = 4500, warmup = 2000,
+                   control = list(adapt_delta = .999, max_treedepth = 20),
+                   file = 'fit_b')
+summary(fit_b)
+plot(fit_b)
+plot(brms::conditional_smooths(fit_b, smooths = 's(x2)'))
+
+deriv_b <- curvish::derivatives(fit_b, term = 'x2', n = res, eps = eps)
+
+ggplot(deriv_su, aes(x = data, y = derivative)) + 
+  geom_ribbon(aes(ymin = lower, ymax = upper, color = 'Simul/Uncond', fill = 'Simul/Uncond'), alpha = .15) + 
+  geom_ribbon(data = deriv_sc, aes(ymin = lower, ymax = upper, color = 'Simul/Cond', fill = 'Simul/Cond'), alpha = .15) +
+  geom_ribbon(data = deriv_cu, aes(ymin = lower, ymax = upper, color = 'Conf/Uncond', fill = 'Conf/Uncond'), alpha = .15) +
+  geom_ribbon(data = deriv_cc, aes(ymin = lower, ymax = upper, color = 'Conf/Cond', fill = 'Conf/Cond'), alpha = .15) +
+  geom_ribbon(data = p_deriv_sum, aes(x = x2, y = mean, ymin = l, ymax = u, color = 'Bayes', fill = 'Bayes'), 
+              alpha = .7) + 
+  geom_line(data = deriv_b, aes (x = x2, y = mean)) + 
+  scale_color_manual(breaks = c('Simul/Uncond', 'Simul/Cond', 'Conf/Uncond', 'Conf/Cond', 'Bayes'),
+                     values = c('#aaaaaa', cpal[c(1:2, 4:5)]),
+                     name = 'Type of interval') + 
+  scale_fill_manual(breaks = c('Simul/Uncond', 'Simul/Cond', 'Conf/Uncond', 'Conf/Cond', 'Bayes'),
+                    values = c('#222222', cpal[c(1:2, 4:5)]),
+                    name = 'Type of interval') + 
+  labs(x = 'x2', y = 'y') + 
+  theme_minimal()
+```
+

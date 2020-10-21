@@ -1,0 +1,22 @@
+Package: curvish
+Type: Package
+Title: Uses Bayesian GAMMs to Regions Where Slopes Differ
+Version: 0.1.0
+Authors@R: person("John", "Flournoy", email = "john_flournoy@g.harvard.edu",
+  role = c("aut", "cre"))
+Description: Uses Bayesian generalized additive mixed models to estimate 
+  curves through data and the uses the posterior derivative to compare points
+  along those curves in order to determine regions of difference from steepest
+  slope.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Suggests: 
+    knitr,
+    rmarkdown,
+    gratia,
+    mgcv
+VignetteBuilder: knitr
+Imports: 
+    brms (>= 2.14.0)
+RoxygenNote: 7.0.2
