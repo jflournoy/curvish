@@ -44,7 +44,7 @@ get_X_at_slope_point <- function(object, term, n, eps, find = c('min', 'max', 'v
   x <- apply(p$posterior, 1, function(a_sample) {
     the_spot <- find_spot(a_sample)
     closest_to_index <- abs(a_sample - the_spot) == min(abs(a_sample - the_spot))
-    deriv_p$interval[[data_term]][which(closest_to_index)]
+    p$interval[[data_term]][which(closest_to_index)]
   })
   x <- array(data = x, dim = list(length(x), 1), dimnames = list(NULL, data_term))
   if(!multimodal){
