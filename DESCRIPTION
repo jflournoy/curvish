@@ -18,5 +18,6 @@ Suggests:
     mgcv
 VignetteBuilder: knitr
 Imports: 
-    brms (>= 2.14.0)
+    brms (>= 2.14.0),
+    HDInterval
 RoxygenNote: 7.0.2

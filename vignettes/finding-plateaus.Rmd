@@ -126,7 +126,7 @@ ggplot(deriv_su, aes(x = data, y = derivative)) +
   geom_ribbon(data = deriv_sc, aes(ymin = lower, ymax = upper, color = 'Simul/Cond', fill = 'Simul/Cond'), alpha = .15) +
   geom_ribbon(data = deriv_cu, aes(ymin = lower, ymax = upper, color = 'Conf/Uncond', fill = 'Conf/Uncond'), alpha = .15) +
   geom_ribbon(data = deriv_cc, aes(ymin = lower, ymax = upper, color = 'Conf/Cond', fill = 'Conf/Cond'), alpha = .15) +
-  geom_ribbon(data = p_deriv_sum, aes(x = x2, y = mean, ymin = l, ymax = u, color = 'Bayes', fill = 'Bayes'), 
+  geom_ribbon(data = deriv_b, aes(x = x2, y = mean, ymin = l, ymax = u, color = 'Bayes', fill = 'Bayes'), 
               alpha = .7) + 
   geom_line(data = deriv_b, aes (x = x2, y = mean)) + 
   scale_color_manual(breaks = c('Simul/Uncond', 'Simul/Cond', 'Conf/Uncond', 'Conf/Cond', 'Bayes'),
@@ -139,3 +139,66 @@ ggplot(deriv_su, aes(x = data, y = derivative)) +
   theme_minimal()
 ```
 
+# Finding regions of difference
+
+There are ways to do this using the `gratia` package and fequentist inference. An example is [here](http://johnflournoy.science/hcpd_myelin_gam_boot/test_gam_deriv_sandbox.html). This vignette will focus on the Bayesian approach implemented in `curvish`.
+
+## X value for slope property
+
+For example, you might want to find the most probably X value for where the slope is steepest (positive or negative), or closest to 0.
+
+
+### Max
+
+```{r}
+max_p <- curvish::get_X_at_slope_point(object = fit_b, term = 'x2', 
+                                       n = res, eps = eps, 
+                                       find = 'max', 
+                                       multimodal = FALSE, prob = .95, 
+                                       summary_only = FALSE)
+max_p$summary
+bayesplot::mcmc_areas(max_p$posterior, prob = .95, prob_outer = .99, adjust = 4)
+```
+
+### Min
+
+```{r}
+min_p <- curvish::get_X_at_slope_point(object = fit_b, term = 'x2', 
+                                       n = res, eps = eps, 
+                                       find = 'min', 
+                                       multimodal = FALSE, prob = .95, 
+                                       summary_only = FALSE)
+min_p$summary
+bayesplot::mcmc_areas(min_p$posterior, prob = .95, prob_outer = .99, adjust = 4)
+```
+
+### Near 0
+
+```{r}
+zero_p <- curvish::get_X_at_slope_point(object = fit_b, term = 'x2', 
+                                       n = res, eps = eps, 
+                                       find = 'value', value = 0, 
+                                       multimodal = TRUE, prob = .95, 
+                                       summary_only = FALSE)
+zero_p$summary
+bayesplot::mcmc_dens(zero_p$posterior, prob = .95, prob_outer = .99) + 
+  geom_segment(data = data.frame(zero_p$summary), aes(y = 0, yend = 0, x = begin, xend = end),
+               size = 4, color = 'red')
+```
+
+```{r eval = FALSE}
+deriv1_age_at_max_post <- c_smooths_1_sample_data[, list('max_age' = Age[which(deriv1 == max(deriv1))]),
+                                                  by = 'sample__']
+age_at_max_med_deriv <- deriv1_post_summary[deriv1 == max(deriv1), Age]
+deriv1_diff_from_max_post <- c_smooths_1_sample_data[, diff_from_max := deriv1 - deriv1[Age == age_at_max_med_deriv],
+                                                     by = 'sample__']
+deriv1_diff_from_max_post_summary <- deriv1_diff_from_max_post[, list('diff_from_max' = median(diff_from_max), 
+                                                                      'lower' = quantile(diff_from_max, probs = .025), 
+                                                                      'upper' = quantile(diff_from_max, probs = .975)),
+                                                               by = 'Age']
+deriv1_diff_from_max_post_summary[, compared_to_max := case_when(upper < 0 ~ 'less_steep',
+                                                                 lower > 0 ~ 'steeper',
+                                                                 TRUE ~ 'as_steep')]
+
+deriv1_post_summary <- deriv1_post_summary[deriv1_diff_from_max_post_summary[, .(Age, compared_to_max)], on = 'Age']
+```
