@@ -4,7 +4,7 @@
 \alias{derivatives}
 \title{derivatives}
 \usage{
-derivatives(object, term, n = 200, eps = 1e-07, summary_only = TRUE)
+derivatives(object, term, n = 200, eps = 1e-07, deriv_posterior = FALSE)
 }
 \arguments{
 \item{object}{a \code{brmsfit} object}
@@ -14,9 +14,11 @@ derivatives(object, term, n = 200, eps = 1e-07, summary_only = TRUE)
 \item{n}{numeric; the number of points to evaluate the derivative at.}
 
 \item{eps}{numeric; the finite difference.}
+
+\item{deriv_posterior}{return the posterior samples for the derivative as part of the object?}
 }
 \value{
-
+a \code{curvish} object containing summaries of the posterior derivative, posterior smooths.
 }
 \description{
 Computes the derivative of a smooth term from the posterior of the smooth.

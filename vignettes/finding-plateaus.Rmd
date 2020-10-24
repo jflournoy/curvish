@@ -109,6 +109,7 @@ ggplot(deriv_su, aes(x = data, y = derivative)) +
 Using brms.
 
 ```{r}
+library(brms)
 fit_b <- brms::brm(brms::bf(y ~ s(x0) + s(x1) + s(x2) + s(x3)), 
                    data=d,
                    chains = 4, cores = 4,
@@ -116,7 +117,7 @@ fit_b <- brms::brm(brms::bf(y ~ s(x0) + s(x1) + s(x2) + s(x3)),
                    control = list(adapt_delta = .999, max_treedepth = 20),
                    file = 'fit_b')
 summary(fit_b)
-plot(fit_b)
+plot(fit_b, ask = FALSE)
 plot(brms::conditional_smooths(fit_b, smooths = 's(x2)'))
 
 deriv_b <- curvish::derivatives(fit_b, term = 'x2', n = res, eps = eps)
@@ -126,9 +127,9 @@ ggplot(deriv_su, aes(x = data, y = derivative)) +
   geom_ribbon(data = deriv_sc, aes(ymin = lower, ymax = upper, color = 'Simul/Cond', fill = 'Simul/Cond'), alpha = .15) +
   geom_ribbon(data = deriv_cu, aes(ymin = lower, ymax = upper, color = 'Conf/Uncond', fill = 'Conf/Uncond'), alpha = .15) +
   geom_ribbon(data = deriv_cc, aes(ymin = lower, ymax = upper, color = 'Conf/Cond', fill = 'Conf/Cond'), alpha = .15) +
-  geom_ribbon(data = deriv_b, aes(x = x2, y = mean, ymin = l, ymax = u, color = 'Bayes', fill = 'Bayes'), 
+  geom_ribbon(data = deriv_b$deriv_posterior_summary, aes(x = x2, y = mean, ymin = l, ymax = u, color = 'Bayes', fill = 'Bayes'), 
               alpha = .7) + 
-  geom_line(data = deriv_b, aes (x = x2, y = mean)) + 
+  geom_line(data = deriv_b$deriv_posterior_summary, aes (x = x2, y = mean)) + 
   scale_color_manual(breaks = c('Simul/Uncond', 'Simul/Cond', 'Conf/Uncond', 'Conf/Cond', 'Bayes'),
                      values = c('#aaaaaa', cpal[c(1:2, 4:5)]),
                      name = 'Type of interval') + 
@@ -137,6 +138,14 @@ ggplot(deriv_su, aes(x = data, y = derivative)) +
                     name = 'Type of interval') + 
   labs(x = 'x2', y = 'y') + 
   theme_minimal()
+```
+
+## Plot method
+
+The package can plot the derivative and the smooth.
+
+```{r}
+plot(deriv_b, robust = TRUE, deriv = TRUE)
 ```
 
 # Finding regions of difference
@@ -152,12 +161,12 @@ For example, you might want to find the most probably X value for where the slop
 
 ```{r}
 max_p <- curvish::get_X_at_slope_point(object = fit_b, term = 'x2', 
-                                       n = res, eps = eps, 
+                                       n = 200, eps = eps, 
                                        find = 'max', 
-                                       multimodal = FALSE, prob = .95, 
+                                       multimodal = TRUE, prob = .95, 
                                        summary_only = FALSE)
-max_p$summary
-bayesplot::mcmc_areas(max_p$posterior, prob = .95, prob_outer = .99, adjust = 4)
+max_p$param_posterior_sum
+plot(max_p, adjust = .1)
 ```
 
 ### Min

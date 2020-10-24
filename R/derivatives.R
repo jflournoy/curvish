@@ -6,8 +6,9 @@
 #' @param term character; the smooth term for which the derivative is required.
 #' @param n numeric; the number of points to evaluate the derivative at.
 #' @param eps numeric; the finite difference.
+#' @param deriv_posterior return the posterior samples for the derivative as part of the object?
 #'
-#' @return
+#' @return a \code{curvish} object containing summaries of the posterior derivative, posterior smooths.
 #' @export
 #' @import brms
 #'
@@ -16,7 +17,8 @@ derivatives <- function(object,
                         term,
                         # newdata,
                         n = 200,
-                        eps = 1e-07, summary_only = TRUE){
+                        eps = 1e-07,
+                        deriv_posterior = FALSE){
   if(!grepl('s\\(.*\\)', term)){
     data_term <- term
     smooth_term <- sprintf('s(%s)', term)
@@ -25,7 +27,7 @@ derivatives <- function(object,
     smooth_term <- term
   }
   srange <- range(object$data[data_term])
-  interval <- list(seq(srange[[1]], srange[[2]], length.out = res))
+  interval <- list(seq(srange[[1]], srange[[2]], length.out = n))
   names(interval) <- data_term
   interval_eps <- interval
   interval_eps[[1]] <- interval_eps[[1]] + eps
@@ -36,17 +38,26 @@ derivatives <- function(object,
   p_eps <- brms::posterior_smooths(object = fit_b, smooth = smooth_term, newdata = newd_eps)
   p_deriv <- (p_eps - p) / eps
 
-  if(summary_only){
-    p_deriv_sum <- do.call(rbind, apply(p_deriv, 2, function(x){
-      q <- quantile(x, probs = c(.025, .975))
-      m <- mean(x)
-      data.frame(mean = m, l = q[[1]], u = q[[2]])
-    }))
+  p_curve_sum <- do.call(rbind, apply(p, 2, function(x){
+    q <- quantile(x, probs = c(.025, .5, .975))
+    m <- mean(x)
+    data.frame(mean = m, median = q[[2]], l = q[[1]], u = q[[3]])
+  }))
+  p_deriv_sum <- do.call(rbind, apply(p_deriv, 2, function(x){
+    q <- quantile(x, probs = c(.025, .5, .975))
+    m <- mean(x)
+    data.frame(mean = m, median = q[[2]], l = q[[1]], u = q[[3]])
+  }))
 
-    p_deriv_sum[data_term] <- interval
-    r <- p_deriv_sum
-  } else {
-    r <- list(posterior = p_deriv, interval = interval)
+  p_deriv_sum[data_term] <- interval
+  p_curve_sum[data_term] <- interval
+  r <- list(deriv_posterior_summary = p_deriv_sum,  smooth_posterior_summary = p_curve_sum)
+  if(deriv_posterior){
+    r <- c(r, list(deriv_posterior = p_deriv))
   }
+  attr(r,'class') <- 'curvish'
+  attr(r,'class') <- 'curvish.curve'
+  attr(r, 'term') <- list(data_term = data_term, smooth_term = smooth_term)
+  attr(r, 'resolution') <- res
   return(r)
 }

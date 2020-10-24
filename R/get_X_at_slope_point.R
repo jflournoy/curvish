@@ -18,7 +18,7 @@
 #' @export
 #'
 #' @examples
-get_X_at_slope_point <- function(object, term, n, eps, find = c('min', 'max', 'value'), value = NULL, multimodal = FALSE, prob = .95, summary_only = TRUE){
+get_X_at_slope_point <- function(object, term, n, eps, find = c('min', 'max', 'value'), value = NULL, multimodal = TRUE, prob = .95, summary_only = FALSE){
 
   if(!find %in% c('max', 'min', 'value')){
     stop('Argument `find` must be "max", "min", or "value"')
@@ -40,11 +40,12 @@ get_X_at_slope_point <- function(object, term, n, eps, find = c('min', 'max', 'v
     smooth_term <- term
   }
 
-  p <- curvish::derivatives(object, term = term, n = n, eps = eps, summary_only = FALSE)
-  x <- apply(p$posterior, 1, function(a_sample) {
+  p <- curvish::derivatives(object, term = term, n = n, eps = eps, deriv_posterior = TRUE)
+  interval <- p$deriv_posterior_summary[[data_term]]
+  x <- apply(p$deriv_posterior, 1, function(a_sample) {
     the_spot <- find_spot(a_sample)
     closest_to_index <- abs(a_sample - the_spot) == min(abs(a_sample - the_spot))
-    p$interval[[data_term]][which(closest_to_index)]
+    interval[which(closest_to_index)]
   })
   x <- array(data = x, dim = list(length(x), 1), dimnames = list(NULL, data_term))
   if(!multimodal){
@@ -55,7 +56,12 @@ get_X_at_slope_point <- function(object, term, n, eps, find = c('min', 'max', 'v
   if(summary_only){
     r <- summary_value
   } else {
-    r <- list(summary = summary_value, posterior = x)
+    r <- list(param_posterior_sum = summary_value, param_posterior = x)
+    attr(r,'class') <- c('curvish', 'curvish.param')
+    attr(r, 'find') <- find
+    attr(r, 'value') <- value
+    attr(r, 'multimodal') <- multimodal
   }
   return(r)
 }
+

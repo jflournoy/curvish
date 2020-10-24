@@ -11,9 +11,9 @@ get_X_at_slope_point(
   eps,
   find = c("min", "max", "value"),
   value = NULL,
-  multimodal = FALSE,
+  multimodal = TRUE,
   prob = 0.95,
-  summary_only = TRUE
+  summary_only = FALSE
 )
 }
 \arguments{
