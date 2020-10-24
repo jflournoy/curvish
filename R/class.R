@@ -1,3 +1,35 @@
+#' contiguous_zeros
+#'
+#' @param x
+#' @param colname
+#' @param indexcol
+#'
+#' @return
+#'
+#' @examples
+contiguous_zeros <- function(x, colname, indexcol = NULL){
+  x$gt0__ <- as.numeric(x[colname] != 0)
+  if(is.null(indexcol)){
+    indexcol <- 'indexcol__'
+    x[indexcol] <- 1:dim(x)[[1]]
+  } else {
+    x['indexcol__'] <- x[indexcol]
+    indexcol <- 'indexcol__'
+  }
+  x$diff__ <- abs(x$gt0__ - c(x$gt0__[1], x$gt0__[-dim(x)[[1]]]))
+  x$diff_cum__ <- cumsum(x$diff__)
+  x$is_zero__ <- x[, colname] == 0
+  block_lengths <- lapply(split(x, x$diff_cum__), function(d){
+    n <- dim(d)[[1]]
+
+    s <- min(d[indexcol])
+    e <- max(d[indexcol])
+    return(data.frame(n = n, is_zero = unique(d[, 'is_zero__']), start = s, end = e))
+  })
+  block_lengths_df <- do.call(rbind, block_lengths)
+  return(list(block_lengths = block_lengths_df, index = x$diff_cum__, is_zero = x$is_zero__))
+}
+
 #' a_pal
 #'
 #' @return
@@ -10,7 +42,7 @@ a_pal <- function(){
 #' @export
 #' @import ggplot2
 plot.curvish.curve <- function(x, robust = FALSE, deriv = TRUE){
-  apal <- curvish::a_pal()
+  apal <- curvish:::a_pal()
   if(deriv){
     d <- x$deriv_posterior_summary
   } else {
@@ -30,27 +62,91 @@ plot.curvish.curve <- function(x, robust = FALSE, deriv = TRUE){
   return(aplot)
 }
 
+
+#' plot.curvish.param
+#'
+#' @param x An object of class \code{curvish.param}.
+#' @param robust If the type of summary is multimodal and this is \code{TRUE},
+#'   this sets the parameter of central tendency to the median.
+#' @param range Two-element numeric vector specifying limits on the range of the
+#'   posterior to consider for the plot.
+#' @param mode If the type of summary is multimodal, default is to use mode as
+#'   the central tendency. If this is \code{FALSE}, will use the median of the
+#'   posterior within the relevant portion of the HPDI.
+#' @param ... Will be passed to the \code{density} function.
+#'
+#' @return
 #' @export
-#' @import ggplot2
-plot.curvish.param <- function(x, robust = FALSE, ...){
+#'
+#' @examples
+plot.curvish.param <- function(x, robust = FALSE, range = NULL, mode = TRUE, ...){
+  apal <- curvish:::a_pal()
+  if(!is.null(range)){
+    top <- range[[2]]
+    bottom <- range[[1]]
+    x$param_posterior <- x$param_posterior[x$param_posterior < top & x$param_posterior > bottom]
+  }
   d <- with(density(x$param_posterior, ...), data.frame(x, y))
-  q_ <- lapply(1:dim(x$param_posterior_sum)[[1]], function(i){
-    arow <- x$param_posterior_sum[i, ]
-    r <- d$x < arow['end'] & d$x > arow['begin']
-    r*i
-  })
-  q <- do.call(cbind, q_)
-  d$CI <- apply(q, 1, any)
-  d$CI_group <- apply(q, 1, sum)
+  p_cent <- NULL
+
+  if(attr(x, 'multimodal')){
+    q_ <- lapply(1:dim(x$param_posterior_sum)[[1]], function(i){
+      arow <- x$param_posterior_sum[i, ]
+      r <- d$x < arow['end'] & d$x > arow['begin']
+      r*i
+    })
+    p_cent <- do.call(rbind, lapply(1:dim(x$param_posterior_sum)[[1]], function(i){
+      arow <- x$param_posterior_sum[i, ]
+      if(mode){
+        cent_y <- max(d$y[d$x < arow['end'] & d$x > arow['begin']])
+      } else {
+        d_within <- x$param_posterior[x$param_posterior > arow['begin'] & x$param_posterior < arow['end']]
+        cent <- median(d_within)
+        cent_y <- d$y[which(abs(d$x - cent) == min(abs(d$x - cent)))]
+      }
+      which_y <- which(d$y == cent_y)
+      which_ys <- (which_y - 1):(which_y + 1)
+      which_ys <- which_ys[which_ys > 0]
+      ys <- d$y[which_ys]
+      xs <- d$x[which_ys]
+      return(rbind(data.frame(x = xs, y = ys, type = 'areas', index = i),
+                   data.frame(x = d$x[which_y], y = cent_y, type = 'points', index = i)))
+    }))
+    q <- do.call(cbind, q_)
+    d$CI <- apply(q, 1, any)
+  } else {
+    d$CI <- d$x < x$param_posterior_sum['upper',] & d$x > x$param_posterior_sum['lower',]
+    if(robust){
+      cent_x <- median(x$param_posterior)
+    } else {
+      cent_x <- mean(x$param_posterior)
+    }
+    cent_y <- d$y[which(abs(d$x - cent_x) == min(abs(d$x - cent_x)))]
+    which_y <- which(d$y == cent_y)
+    which_ys <- (which_y - 1):(which_y + 1)
+    which_ys <- which_ys[which_ys > 0]
+    ys <- d$y[which_ys]
+    xs <- d$x[which_ys]
+    p_cent <- rbind(data.frame(x = xs, y = ys, type = 'areas', index = 1),
+                    data.frame(x = d$x[which_y], y = cent_y, type = 'points', index = 1))
+  }
+
+  d$CI_group <- curvish:::contiguous_zeros(d, colname = 'CI')$index
 
   aplot <- ggplot(data = d, mapping = aes(x = x, y = y)) +
     geom_line() +
-    geom_area(aes(group = CI_group, fill = CI)) +
+    geom_area(aes(group = CI_group, fill = CI), alpha = .5) +
+    geom_area(data = p_cent[p_cent$type == 'areas',],
+              aes(x = x, y = y, group = index),
+                 fill = apal[[1]], alpha = .8) +
+    # geom_point(data = p_cent[p_cent$type == 'points',],
+    #            aes(y = 0, x = x), color = apal[[5]]) +
     scale_fill_manual(aesthetics = c('fill', 'color'),
                       breaks = c(TRUE, FALSE),
-                      values = apal[c(3,2)],
+                      values = apal[c(3,1)],
                       labels = c('Inside HDI', ''),
                       name = '') +
+
     theme_minimal()
   return(aplot)
 }

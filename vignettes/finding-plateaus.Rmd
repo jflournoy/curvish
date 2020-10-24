@@ -166,34 +166,43 @@ max_p <- curvish::get_X_at_slope_point(object = fit_b, term = 'x2',
                                        multimodal = TRUE, prob = .95, 
                                        summary_only = FALSE)
 max_p$param_posterior_sum
-plot(max_p, adjust = .1)
+plot(max_p)
+plot(max_p, range = c(0, .15))
+plot(max_p, range = c(0, .15), mode = FALSE)
 ```
 
 ### Min
 
 ```{r}
 min_p <- curvish::get_X_at_slope_point(object = fit_b, term = 'x2', 
-                                       n = res, eps = eps, 
+                                       n = 300, eps = eps, 
                                        find = 'min', 
                                        multimodal = FALSE, prob = .95, 
                                        summary_only = FALSE)
-min_p$summary
-bayesplot::mcmc_areas(min_p$posterior, prob = .95, prob_outer = .99, adjust = 4)
+min_p$param_posterior_sum
+plot(min_p)
+plot(min_p, range = c(0, .4), adjust = 1.5)
 ```
 
 ### Near 0
 
 ```{r}
 zero_p <- curvish::get_X_at_slope_point(object = fit_b, term = 'x2', 
-                                       n = res, eps = eps, 
+                                       n = 200, eps = eps, 
                                        find = 'value', value = 0, 
                                        multimodal = TRUE, prob = .95, 
                                        summary_only = FALSE)
-zero_p$summary
-bayesplot::mcmc_dens(zero_p$posterior, prob = .95, prob_outer = .99) + 
-  geom_segment(data = data.frame(zero_p$summary), aes(y = 0, yend = 0, x = begin, xend = end),
-               size = 4, color = 'red')
+
+zero_p$param_posterior_sum
+plot(zero_p)
+plot(zero_p, mode = FALSE)
 ```
+
+# Coming up
+
+Find the posterior of differences from various points in the curve, or credible intervals for differences along arbitrary values.
+
+Also, combine objects like posteriors for max slopes and the slopes themselves to make plots of regions of the curve that have certain properties.
 
 ```{r eval = FALSE}
 deriv1_age_at_max_post <- c_smooths_1_sample_data[, list('max_age' = Age[which(deriv1 == max(deriv1))]),
