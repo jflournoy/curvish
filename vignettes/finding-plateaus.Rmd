@@ -41,7 +41,7 @@ gam.check(fit)
 
 ```{r}
 eps = 1e-07
-res = 50
+res = 200
 fit <- gam(y~s(x2),data=d, method = 'REML')
 deriv_su <- gratia::derivatives(fit, term = 'x2', n = res, eps = eps, level = .95, 
                                 interval = 'simultaneous', unconditional = TRUE, n_sim = 10000)
@@ -146,6 +146,7 @@ The package can plot the derivative and the smooth.
 
 ```{r}
 plot(deriv_b, robust = TRUE, deriv = TRUE)
+plot(deriv_b, robust = TRUE, deriv = FALSE)
 ```
 
 # Finding regions of difference
@@ -160,42 +161,174 @@ For example, you might want to find the most probably X value for where the slop
 ### Max
 
 ```{r}
-max_p <- curvish::get_X_at_slope_point(object = fit_b, term = 'x2', 
-                                       n = 200, eps = eps, 
-                                       find = 'max', 
-                                       multimodal = TRUE, prob = .95, 
-                                       summary_only = FALSE)
+library(patchwork)
+max_p <- curvish::posterior_x_at_maxy(object = fit_b, term = 'x2', 
+                                      n = res, eps = eps, 
+                                      multimodal = TRUE, prob = .95, 
+                                      summary_only = FALSE)
 max_p$param_posterior_sum
-plot(max_p)
-plot(max_p, range = c(0, .15))
-plot(max_p, range = c(0, .15), mode = FALSE)
+plot(deriv_b, deriv = FALSE) + 
+plot(max_p) + 
+  patchwork::plot_layout(design = "
+A
+B", guides = "collect")
+```
+
+#### Two other views
+
+You can set a constrained range, and wether to use the mode or the median within each chunk of the HPDI.
+
+```{r}
+plot(max_p, range = c(0, .15)) + 
+plot(max_p, range = c(0, .15), mode = FALSE) + 
+  patchwork::plot_layout(guides = 'collect')
 ```
 
 ### Min
 
 ```{r}
-min_p <- curvish::get_X_at_slope_point(object = fit_b, term = 'x2', 
-                                       n = 300, eps = eps, 
-                                       find = 'min', 
+min_p <- curvish::posterior_x_at_miny(object = fit_b, term = 'x2', 
+                                       n = res, eps = eps, 
                                        multimodal = FALSE, prob = .95, 
                                        summary_only = FALSE)
 min_p$param_posterior_sum
-plot(min_p)
-plot(min_p, range = c(0, .4), adjust = 1.5)
+plot(deriv_b, deriv = FALSE) + 
+  coord_cartesian(x = c(0, 1)) + 
+plot(min_p) + 
+  coord_cartesian(x = c(0, 1)) + 
+  patchwork::plot_layout(design = "
+A
+B", guides = "collect")
+
+```
+
+#### Other view
+
+```{r}
+plot(min_p, range = c(0, .4), adjust = 1.75)
+plot(min_p, range = c(0, .4), adjust = 1.75, robust = TRUE)
 ```
 
 ### Near 0
 
 ```{r}
-zero_p <- curvish::get_X_at_slope_point(object = fit_b, term = 'x2', 
-                                       n = 200, eps = eps, 
-                                       find = 'value', value = 0, 
-                                       multimodal = TRUE, prob = .95, 
-                                       summary_only = FALSE)
-
+zero_p <- curvish::posterior_x_at_yequalto(object = fit_b, term = 'x2', 
+                                           n = 200, eps = eps, 
+                                           value = 0, 
+                                           multimodal = TRUE, prob = .95, 
+                                           summary_only = FALSE)
 zero_p$param_posterior_sum
-plot(zero_p)
-plot(zero_p, mode = FALSE)
+plot(deriv_b, deriv = FALSE) + 
+  coord_cartesian(x = c(0, 1)) + 
+plot(zero_p, mode = FALSE) +
+  coord_cartesian(x = c(0, 1)) + 
+  patchwork::plot_layout(design = "
+A
+B", guides = "collect")
+
+```
+
+### The question has to make sense.
+
+```{r}
+set.seed(9)
+linear_data <- data.frame(x = rnorm(200))
+linear_data$y <- linear_data$x*.5 + rnorm(200)
+plot(linear_data$x, linear_data$y)
+fit_lin <- brms::brm(brms::bf(y ~ s(x)), 
+                   data=linear_data,
+                   chains = 4, cores = 4,
+                   iter = 4500, warmup = 2000,
+                   control = list(adapt_delta = .999, max_treedepth = 20),
+                   file = 'fit_lin')
+summary(fit_lin)
+plot(fit_lin, ask = FALSE)
+plot(conditional_smooths(fit_lin, smooths = 's(x)'))
+deriv_lin <- curvish::derivatives(fit_lin, term = 's(x)', n = res, eps = eps)
+plot(deriv_lin)
+plot(deriv_lin, robust = TRUE)
+plot(deriv_lin, deriv = FALSE)
+```
+
+What's the maximum slope along a line?
+
+```{r}
+max_lin <- curvish::posterior_x_at_maxy(fit_lin, term = 'x', n = res, eps = eps, adjust = 1)
+
+plot(deriv_lin, deriv = FALSE) + 
+  coord_cartesian(x = range(linear_data$x)) + 
+plot(max_lin) + 
+  coord_cartesian(x = range(linear_data$x)) + 
+  patchwork::plot_layout(ncol = 1)
+
+plot(max_lin) + 
+  coord_cartesian(x = range(linear_data$x)) + 
+plot(max_lin, adjust = 2) + plot(max_lin, adjust = .5) + plot(max_lin, adjust = .1) + 
+  patchwork::plot_layout(guides = 'collect', ncol = 1)
+```
+
+Clearly the correct answer is that the entire curve is of maximum slope, but the posterior we derive incorrectly excludes a portion, by necessity. This can be understood, perhaps, as an instance of model misspecification. One should never expect to get the right answer from the wrong question.
+
+```{r}
+zero_lin <- curvish::posterior_x_at_yequalto(fit_lin, term = 'x', n = res, eps = eps, value = 0)
+plot(deriv_lin, deriv = FALSE) + 
+  coord_cartesian(x = range(fit_lin$data$x)) + 
+plot(zero_lin) + 
+  coord_cartesian(x = range(fit_lin$data$x)) + 
+  patchwork::plot_layout(ncol = 1)
+```
+
+Interestingly we can see that it is most likely to be 0 where we have the least data, and least likely where we have the most data.
+
+Finally, consider using the histogram overlay to check the density plots.
+
+```{r}
+max_lin_uni <- curvish::posterior_x_at_maxy(fit_lin, term = 'x', n = res, eps = eps, multimodal = FALSE)
+plot(max_lin_uni, histogram = TRUE, adjust = 1) + 
+  plot(max_lin_uni, histogram = TRUE, adjust = .5) + 
+  plot(max_lin_uni, histogram = TRUE, adjust = .1) + 
+  patchwork::plot_layout(ncol = 1)
+```
+
+# Regions along the slope
+
+```{r}
+deriv_b2 <- curvish::derivatives(fit_b, term = 'x2', n = res, eps = eps, deriv_posterior = TRUE, prob = .95, prob_outer = .999)
+plot(deriv_b2, deriv = TRUE, outer = TRUE)
+ap <- deriv_b2$deriv_posterior
+
+onoff_mat <- apply(ap, 2, function(x) {
+  ps <- c(pGT = mean(x > 0), pLT = mean(x < 0))
+  C <- c(1, -1)[which(ps == max(ps))] # is it confidently above or below 0
+  S <- min(ps)
+  nS <- min(c(sum(x > 0), sum(x < 0)))
+  c(ps, C = C, S = S, nS = nS)
+})
+
+total_type_S_prob <- sum(onoff_mat['nS',])/length(ap)
+confident_type_S_prob <- sum(onoff_mat['nS', onoff_mat['S',] < .05])/length(ap[, onoff_mat['S',] < .05])
+
+confidence_regions <- onoff_mat['C',]
+confidence_regions[onoff_mat['S', ] > .05] <- 0
+
+region_data <- cbind(deriv_b2$deriv_posterior_summary, 
+                     region = confidence_regions,
+                     `Confidence Region` = factor(confidence_regions, levels = c(1, 0, -1), labels = c('GT', '-', 'LT')))
+blocks <- curvish:::contiguous_zeros(region_data, colname = 'region', indexcol = 'x2')
+region_data$region_group <- blocks$index
+
+plot(deriv_b2, deriv = TRUE, outer = TRUE) + 
+  geom_line(data = region_data,
+            aes(color = `Confidence Region`, group = region_group)) + 
+  scale_color_manual(breaks = c('GT', '-', 'LT'), values = curvish:::a_pal()[c(2,1,5)])
+message(sprintf('P(Type-S) = %0.1f%% in confidence regions.', confident_type_S_prob*100))
+blocks$block_lengths
+
+```
+
+# Differences along the curve
+
+```{r}
 ```
 
 # Coming up

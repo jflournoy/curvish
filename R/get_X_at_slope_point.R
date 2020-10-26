@@ -1,24 +1,38 @@
-#' Title
+#' posterior_x_at_fy
 #'
 #' Find the posterior distribution of the value of a predictor variable at a
 #' particular point along the derivative. For instance, one might be interested
 #' in knowing the age value at which a slope is steepest, or closest to zero.
 #'
+#' \code{posterior_x_at_miny}, \code{posterior_x_at_maxy}, and
+#' \code{posterior_x_at_yequalto} are aliases of \code{posterior_x_at_fy} where
+#' \code{find} is set to 'min', 'max', or 'value', respectively and are provided
+#' in case they make for more readable code.
+#'
 #' @param object a \code{brmsfit} object
 #' @param term character; the smooth term for which the derivative is required.
 #' @param n numeric; the number of points to evaluate the derivative at.
 #' @param eps numeric; the finite difference.
-#' @param find the spot along the derivative to find; can be 'min', 'max', or 'value', in which case the \code{value} parameter must be set.
-#' @param value if \code{find} is set to 'value', this must be set to a specific value, like 0.
-#' @param multimodal if the expected posterior might be multimodal, set this to \code{TRUE} so that the summary is a true, possibly discontinuous, highest posterior density interval.
+#' @param find the spot along the derivative to find; can be 'min', 'max', or
+#'   'value', in which case the \code{value} parameter must be set.
+#' @param value if \code{find} is set to 'value', this must be set to a specific
+#'   value, like 0.
+#' @param multimodal if the expected posterior might be multimodal, set this to
+#'   \code{TRUE} so that the summary is a true, possibly discontinuous, highest
+#'   posterior density interval.
+#' @param adjust passed to \code{\link[stats]{density}} to adjust bandwidth.
 #' @param prob the proportion of mass within the HPDI
-#' @param summary_only set this to \code{FALSE} if you want all samples returned.
+#' @param summary_only set this to \code{FALSE} if you want all samples
+#'   returned.
 #'
-#' @return either a summary of the posterior density, or a list containing the summary and the posterior samples.
+#' @return An object of class \code{curvish.param} that contains the summary
+#'   from \code{\link[HDInterval]{hdi}}, and the posterior samples. If
+#'   \code{summary_only} is \code{TRUE}, the only the output from
+#'   \code{\link[HDInterval]{hdi}} is returned.
 #' @export
 #'
 #' @examples
-get_X_at_slope_point <- function(object, term, n, eps, find = c('min', 'max', 'value'), value = NULL, multimodal = TRUE, prob = .95, summary_only = FALSE){
+posterior_x_at_fy <- function(object, term, n, eps, find = c('min', 'max', 'value'), value = NULL, multimodal = TRUE, adjust = 1, prob = .95, summary_only = FALSE){
 
   if(!find %in% c('max', 'min', 'value')){
     stop('Argument `find` must be "max", "min", or "value"')
@@ -45,13 +59,20 @@ get_X_at_slope_point <- function(object, term, n, eps, find = c('min', 'max', 'v
   x <- apply(p$deriv_posterior, 1, function(a_sample) {
     the_spot <- find_spot(a_sample)
     closest_to_index <- abs(a_sample - the_spot) == min(abs(a_sample - the_spot))
-    interval[which(closest_to_index)]
+    closest_x <- interval[which(closest_to_index)]
+    if(length(closest_x) > 1){
+      warning('More than one point matched. Sampling one at random.')
+      closest_x <- sample(closest_x, size = 1)
+    }
+    return(closest_x)
   })
+  adensity <- NULL
   x <- array(data = x, dim = list(length(x), 1), dimnames = list(NULL, data_term))
   if(!multimodal){
     summary_value <- HDInterval::hdi(x, credMass = prob)
   } else {
-    summary_value <- HDInterval::hdi(density(x), credMass = prob, allowSplit = TRUE)
+    adensity <- density(x, adjust = adjust)
+    summary_value <- HDInterval::hdi(adensity, credMass = prob, allowSplit = TRUE)
   }
   if(summary_only){
     r <- summary_value
@@ -61,7 +82,26 @@ get_X_at_slope_point <- function(object, term, n, eps, find = c('min', 'max', 'v
     attr(r, 'find') <- find
     attr(r, 'value') <- value
     attr(r, 'multimodal') <- multimodal
+    attr(r, 'density') <- adensity
+    attr(r, 'adjust') <- adjust
   }
   return(r)
 }
 
+#' @rdname posterior_x_at_fy
+#' @export
+posterior_x_at_miny <- function(...){
+  return(posterior_x_at_fy(..., find = c('min'), value = NULL))
+}
+
+#' @rdname posterior_x_at_fy
+#' @export
+posterior_x_at_maxy <- function(...){
+  return(posterior_x_at_fy(..., find = c('max'), value = NULL))
+}
+
+#' @rdname posterior_x_at_fy
+#' @export
+posterior_x_at_yequalto <- function(...){
+  return(posterior_x_at_fy(..., find = c('value')))
+}

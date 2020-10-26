@@ -124,7 +124,15 @@
     <p>Computes the derivative of a smooth term from the posterior of the smooth.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>derivatives</span><span class='op'>(</span><span class='va'>object</span>, <span class='va'>term</span>, n <span class='op'>=</span> <span class='fl'>200</span>, eps <span class='op'>=</span> <span class='fl'>1e-07</span>, deriv_posterior <span class='op'>=</span> <span class='cn'>FALSE</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>derivatives</span><span class='op'>(</span>
+  <span class='va'>object</span>,
+  <span class='va'>term</span>,
+  n <span class='op'>=</span> <span class='fl'>200</span>,
+  eps <span class='op'>=</span> <span class='fl'>1e-07</span>,
+  prob <span class='op'>=</span> <span class='fl'>0.95</span>,
+  prob_outer <span class='op'>=</span> <span class='fl'>0.99</span>,
+  deriv_posterior <span class='op'>=</span> <span class='cn'>FALSE</span>
+<span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -144,6 +152,14 @@
     <tr>
       <th>eps</th>
       <td><p>numeric; the finite difference.</p></td>
+    </tr>
+    <tr>
+      <th>prob</th>
+      <td><p>numeric; the density of the posterior summary.</p></td>
+    </tr>
+    <tr>
+      <th>prob_outer</th>
+      <td><p>numeric; the outer density of the posterior summary.</p></td>
     </tr>
     <tr>
       <th>deriv_posterior</th>

@@ -21,10 +21,10 @@ contiguous_zeros <- function(x, colname, indexcol = NULL){
   x$is_zero__ <- x[, colname] == 0
   block_lengths <- lapply(split(x, x$diff_cum__), function(d){
     n <- dim(d)[[1]]
-
+    m <- mean(unlist(d[colname]))
     s <- min(d[indexcol])
     e <- max(d[indexcol])
-    return(data.frame(n = n, is_zero = unique(d[, 'is_zero__']), start = s, end = e))
+    return(data.frame(n = n, mean = m, is_zero = unique(d[, 'is_zero__']), start = s, end = e))
   })
   block_lengths_df <- do.call(rbind, block_lengths)
   return(list(block_lengths = block_lengths_df, index = x$diff_cum__, is_zero = x$is_zero__))
@@ -41,7 +41,7 @@ a_pal <- function(){
 
 #' @export
 #' @import ggplot2
-plot.curvish.curve <- function(x, robust = FALSE, deriv = TRUE){
+plot.curvish.curve <- function(x, robust = FALSE, deriv = TRUE, outer = FALSE){
   apal <- curvish:::a_pal()
   if(deriv){
     d <- x$deriv_posterior_summary
@@ -55,7 +55,13 @@ plot.curvish.curve <- function(x, robust = FALSE, deriv = TRUE){
   }
   xvar <- attr(x, 'term')$data_term
 
-  aplot <- ggplot(data = d, aes_string(x = xvar, y = yvar, ymin = 'l', ymax = 'u')) +
+  aplot <- ggplot(data = d, aes_string(x = xvar, y = yvar, ymin = 'l', ymax = 'u'))
+  if(outer){
+    aplot <- aplot +
+      geom_ribbon(aes_string(ymin = 'll', ymax = 'uu'),
+                  alpha = .2, fill = apal[[5]])
+  }
+  aplot <- aplot +
     geom_ribbon(alpha = .5, fill = apal[[5]]) +
     geom_line(color = apal[[1]]) +
     theme_minimal()
@@ -73,23 +79,37 @@ plot.curvish.curve <- function(x, robust = FALSE, deriv = TRUE){
 #' @param mode If the type of summary is multimodal, default is to use mode as
 #'   the central tendency. If this is \code{FALSE}, will use the median of the
 #'   posterior within the relevant portion of the HPDI.
-#' @param ... Will be passed to the \code{density} function.
+#' @param adjust Will be passed to the \code{density} function. If not set, will
+#'   attempt to take it from the object.
+#' @param histogram Add a histogram overlay.
 #'
 #' @return
 #' @export
 #'
 #' @examples
-plot.curvish.param <- function(x, robust = FALSE, range = NULL, mode = TRUE, ...){
+plot.curvish.param <- function(x, robust = FALSE, range = NULL, mode = TRUE, adjust = NULL, histogram = FALSE){
   apal <- curvish:::a_pal()
   if(!is.null(range)){
     top <- range[[2]]
     bottom <- range[[1]]
     x$param_posterior <- x$param_posterior[x$param_posterior < top & x$param_posterior > bottom]
   }
-  d <- with(density(x$param_posterior, ...), data.frame(x, y))
+
   p_cent <- NULL
 
   if(attr(x, 'multimodal')){
+    orig_adjust <- attr(x, 'adjust')
+    if(is.null(adjust)){
+      adensity <- attr(x, 'density')
+    } else {
+      if(orig_adjust != adjust){
+        warning('Adjusting density bandwidth to be different from that used to compute the HPDI.')
+      }
+      adensity <- density(x$param_posterior, adjust)
+    }
+
+    d <- with(adensity, data.frame(x, y))
+
     q_ <- lapply(1:dim(x$param_posterior_sum)[[1]], function(i){
       arow <- x$param_posterior_sum[i, ]
       r <- d$x < arow['end'] & d$x > arow['begin']
@@ -115,6 +135,12 @@ plot.curvish.param <- function(x, robust = FALSE, range = NULL, mode = TRUE, ...
     q <- do.call(cbind, q_)
     d$CI <- apply(q, 1, any)
   } else {
+    if(is.null(adjust)){
+      adjust = 1
+    }
+    adensity <- density(x$param_posterior, adjust)
+    d <- with(adensity, data.frame(x, y))
+
     d$CI <- d$x < x$param_posterior_sum['upper',] & d$x > x$param_posterior_sum['lower',]
     if(robust){
       cent_x <- median(x$param_posterior)
@@ -148,6 +174,9 @@ plot.curvish.param <- function(x, robust = FALSE, range = NULL, mode = TRUE, ...
                       name = '') +
 
     theme_minimal()
+  if(histogram){
+    aplot <- aplot + geom_histogram(data = data.frame(x = x$param_posterior), aes(y = ..density..), alpha = .2)
+  }
   return(aplot)
 }
 

@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>plot.curvish.param — plot.curvish.param • curvish</title>
+<title>posterior_x_at_fy — posterior_x_at_fy • curvish</title>
 
 
 <!-- jquery -->
@@ -39,8 +39,10 @@
 
 
 
-<meta property="og:title" content="plot.curvish.param — plot.curvish.param" />
-<meta property="og:description" content="plot.curvish.param" />
+<meta property="og:title" content="posterior_x_at_fy — posterior_x_at_fy" />
+<meta property="og:description" content="Find the posterior distribution of the value of a predictor variable at a
+particular point along the derivative. For instance, one might be interested
+in knowing the age value at which a slope is steepest, or closest to zero." />
 
 
 
@@ -115,64 +117,98 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>plot.curvish.param</h1>
+    <h1>posterior_x_at_fy</h1>
     
-    <div class="hidden name"><code>plot.curvish.param.Rd</code></div>
+    <div class="hidden name"><code>posterior_x_at_fy.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>plot.curvish.param</p>
+    <p>Find the posterior distribution of the value of a predictor variable at a
+particular point along the derivative. For instance, one might be interested
+in knowing the age value at which a slope is steepest, or closest to zero.</p>
     </div>
 
-    <pre class="usage"><span class='co'># S3 method for curvish.param</span>
-<span class='fu'><a href='https://rdrr.io/r/graphics/plot.html'>plot</a></span><span class='op'>(</span>
-  <span class='va'>x</span>,
-  robust <span class='op'>=</span> <span class='cn'>FALSE</span>,
-  range <span class='op'>=</span> <span class='cn'>NULL</span>,
-  mode <span class='op'>=</span> <span class='cn'>TRUE</span>,
-  adjust <span class='op'>=</span> <span class='cn'>NULL</span>,
-  histogram <span class='op'>=</span> <span class='cn'>FALSE</span>
-<span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>posterior_x_at_fy</span><span class='op'>(</span>
+  <span class='va'>object</span>,
+  <span class='va'>term</span>,
+  <span class='va'>n</span>,
+  <span class='va'>eps</span>,
+  find <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"min"</span>, <span class='st'>"max"</span>, <span class='st'>"value"</span><span class='op'>)</span>,
+  value <span class='op'>=</span> <span class='cn'>NULL</span>,
+  multimodal <span class='op'>=</span> <span class='cn'>TRUE</span>,
+  adjust <span class='op'>=</span> <span class='fl'>1</span>,
+  prob <span class='op'>=</span> <span class='fl'>0.95</span>,
+  summary_only <span class='op'>=</span> <span class='cn'>FALSE</span>
+<span class='op'>)</span>
+
+<span class='fu'>posterior_x_at_miny</span><span class='op'>(</span><span class='va'>...</span><span class='op'>)</span>
+
+<span class='fu'>posterior_x_at_maxy</span><span class='op'>(</span><span class='va'>...</span><span class='op'>)</span>
+
+<span class='fu'>posterior_x_at_yequalto</span><span class='op'>(</span><span class='va'>...</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>x</th>
-      <td><p>An object of class <code>curvish.param</code>.</p></td>
+      <th>object</th>
+      <td><p>a <code>brmsfit</code> object</p></td>
     </tr>
     <tr>
-      <th>robust</th>
-      <td><p>If the type of summary is multimodal and this is <code>TRUE</code>,
-this sets the parameter of central tendency to the median.</p></td>
+      <th>term</th>
+      <td><p>character; the smooth term for which the derivative is required.</p></td>
     </tr>
     <tr>
-      <th>range</th>
-      <td><p>Two-element numeric vector specifying limits on the range of the
-posterior to consider for the plot.</p></td>
+      <th>n</th>
+      <td><p>numeric; the number of points to evaluate the derivative at.</p></td>
     </tr>
     <tr>
-      <th>mode</th>
-      <td><p>If the type of summary is multimodal, default is to use mode as
-the central tendency. If this is <code>FALSE</code>, will use the median of the
-posterior within the relevant portion of the HPDI.</p></td>
+      <th>eps</th>
+      <td><p>numeric; the finite difference.</p></td>
+    </tr>
+    <tr>
+      <th>find</th>
+      <td><p>the spot along the derivative to find; can be 'min', 'max', or
+'value', in which case the <code>value</code> parameter must be set.</p></td>
+    </tr>
+    <tr>
+      <th>value</th>
+      <td><p>if <code>find</code> is set to 'value', this must be set to a specific
+value, like 0.</p></td>
+    </tr>
+    <tr>
+      <th>multimodal</th>
+      <td><p>if the expected posterior might be multimodal, set this to
+<code>TRUE</code> so that the summary is a true, possibly discontinuous, highest
+posterior density interval.</p></td>
     </tr>
     <tr>
       <th>adjust</th>
-      <td><p>Will be passed to the <code>density</code> function. If not set, will
-attempt to take it from the object.</p></td>
+      <td><p>passed to <code><a href='https://rdrr.io/r/stats/density.html'>density</a></code> to adjust bandwidth.</p></td>
     </tr>
     <tr>
-      <th>histogram</th>
-      <td><p>Add a histogram overlay.</p></td>
+      <th>prob</th>
+      <td><p>the proportion of mass within the HPDI</p></td>
+    </tr>
+    <tr>
+      <th>summary_only</th>
+      <td><p>set this to <code>FALSE</code> if you want all samples
+returned.</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    
+    <p>An object of class <code>curvish.param</code> that contains the summary
+  from <code><a href='https://rdrr.io/pkg/HDInterval/man/hdi.html'>hdi</a></code>, and the posterior samples. If
+  <code>summary_only</code> is <code>TRUE</code>, the only the output from
+  <code><a href='https://rdrr.io/pkg/HDInterval/man/hdi.html'>hdi</a></code> is returned.</p>
+    <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
-
+    <p><code>posterior_x_at_miny</code>, <code>posterior_x_at_maxy</code>, and
+<code>posterior_x_at_yequalto</code> are aliases of <code>posterior_x_at_fy</code> where
+<code>find</code> is set to 'min', 'max', or 'value', respectively and are provided
+in case they make for more readable code.</p>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

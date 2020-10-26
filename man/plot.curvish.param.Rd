@@ -4,7 +4,14 @@
 \alias{plot.curvish.param}
 \title{plot.curvish.param}
 \usage{
-\method{plot}{curvish.param}(x, robust = FALSE, range = NULL, mode = TRUE, ...)
+\method{plot}{curvish.param}(
+  x,
+  robust = FALSE,
+  range = NULL,
+  mode = TRUE,
+  adjust = NULL,
+  histogram = FALSE
+)
 }
 \arguments{
 \item{x}{An object of class \code{curvish.param}.}
@@ -19,7 +26,10 @@ posterior to consider for the plot.}
 the central tendency. If this is \code{FALSE}, will use the median of the
 posterior within the relevant portion of the HPDI.}
 
-\item{...}{Will be passed to the \code{density} function.}
+\item{adjust}{Will be passed to the \code{density} function. If not set, will
+attempt to take it from the object.}
+
+\item{histogram}{Add a histogram overlay.}
 }
 \value{
 
