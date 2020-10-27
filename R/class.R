@@ -99,13 +99,15 @@ plot.curvish.param <- function(x, robust = FALSE, range = NULL, mode = TRUE, adj
 
   if(attr(x, 'multimodal')){
     orig_adjust <- attr(x, 'adjust')
-    if(is.null(adjust)){
+    if(is.null(adjust) & is.null(range)){
       adensity <- attr(x, 'density')
     } else {
+      if(is.null(adjust))
+        adjust <- 1
       if(orig_adjust != adjust){
         warning('Adjusting density bandwidth to be different from that used to compute the HPDI.')
       }
-      adensity <- density(x$param_posterior, adjust)
+      adensity <- density(x$param_posterior, adjust = adjust)
     }
 
     d <- with(adensity, data.frame(x, y))
@@ -138,7 +140,7 @@ plot.curvish.param <- function(x, robust = FALSE, range = NULL, mode = TRUE, adj
     if(is.null(adjust)){
       adjust = 1
     }
-    adensity <- density(x$param_posterior, adjust)
+    adensity <- density(x$param_posterior, adjust = adjust)
     d <- with(adensity, data.frame(x, y))
 
     d$CI <- d$x < x$param_posterior_sum['upper',] & d$x > x$param_posterior_sum['lower',]
@@ -175,7 +177,7 @@ plot.curvish.param <- function(x, robust = FALSE, range = NULL, mode = TRUE, adj
 
     theme_minimal()
   if(histogram){
-    aplot <- aplot + geom_histogram(data = data.frame(x = x$param_posterior), aes(y = ..density..), alpha = .2)
+    aplot <- aplot + geom_histogram(data = data.frame(x = x$param_posterior[, 1]), aes(x = x, y = ..density..), alpha = .2)
   }
   return(aplot)
 }
