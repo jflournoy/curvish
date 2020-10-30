@@ -2,9 +2,15 @@
 % Please edit documentation in R/class.R
 \name{is.curvish}
 \alias{is.curvish}
+\alias{is.curvish.param}
+\alias{is.curvish.curve}
 \title{is.curvish}
 \usage{
 is.curvish(x)
+
+is.curvish.param(x)
+
+is.curvish.curve(x)
 }
 \arguments{
 \item{x}{}

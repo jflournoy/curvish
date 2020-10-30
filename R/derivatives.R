@@ -22,7 +22,7 @@ derivatives <- function(object,
                         eps = 1e-07,
                         prob = .95,
                         prob_outer = .99,
-                        deriv_posterior = FALSE){
+                        deriv_posterior = TRUE){
   if(!grepl('s\\(.*\\)', term)){
     data_term <- term
     smooth_term <- sprintf('s(%s)', term)

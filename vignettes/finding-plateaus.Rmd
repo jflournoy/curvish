@@ -329,6 +329,69 @@ blocks$block_lengths
 # Differences along the curve
 
 ```{r}
+#Find differences along the curve from a particular point on that curve. For
+#example, what's the difference in slope between where it is most credibly at
+#its maximum (i.e., the maximum of either the mean or median posterior
+#derivative) and the rest of the slope?
+#
+#You should be able to pass this function a single X value, a function that
+#returns a single Y value which will map to a single X value. You should also be
+#able to pass it a curvish.param object.
+object = deriv_b2
+comparison = min_p
+comparison = max
+comparison = 5
+robust = TRUE
+prob = .95
+prob_outer = .99
+probs <- sort(c(.5, unlist(lapply((1-c(prob, prob_outer))/2,
+                                    function(x) c(0, 1) + c(1, -1)*x))))
+
+if(is.null(deriv_b2$deriv_posterior)){
+  stop('Object must include full posterior. Please rerun curvish::derivatives with deriv_posterior = TRUE.')
+}
+if(robust){
+  central_func <- 'median'
+} else {
+  central_func <- 'mean'
+}
+data_term <- attr(object, 'term')$data_term
+if(is.numeric(comparison)){
+  X <- comparison
+} else if(is.function(comparison)){
+  Y <- comparison(object$deriv_posterior_summary[central_func])
+  which_X <- which(object$deriv_posterior_summary[central_func] == Y)
+  X <- object$deriv_posterior_summary[[data_term]][which_X]
+} else if(is.curvish.param(comparison)){
+  if(!attr(comparison, 'multimodal')){
+    if(is.null(comparison$param_posterior)){
+      stop("Can't use curvish.param object as comparitor without posterior.")
+    }
+    X <- get(central_func)(comparison$param_posterior)
+  } else {
+    stop('Cannot handle multimodal comparison objects yet')
+  }
+}
+
+#This may be unnecessary except for the is.numeric case
+all_X <- object$deriv_posterior_summary[[data_term]]
+which_closest_X <- which(abs(all_X - X) == min(abs(all_X - X)))
+
+deriv_at_X <- object$deriv_posterior[, which_closest_X]
+diff_deriv <- object$deriv_posterior - deriv_at_X
+diff_deriv_summary <- do.call(rbind, apply(diff_deriv, 2, function(x){
+  mn <- mean(x)
+  qq <- quantile(x, probs)
+  return(data.frame(mean = mn, median = qq[[3]], ll = qq[[1]], l = qq[[2]], u = qq[[4]], uu = qq[[5]]))
+}))
+diff_deriv_summary[[data_term]] <- object$deriv_posterior_summary[[data_term]]
+new_object <- list(deriv_posterior_summary = diff_deriv_summary, 
+                   smooth_posterior_summary = object$smooth_posterior_summary,
+                   deriv_posterior = diff_deriv)
+mostattributes(new_object) <- attributes(object)
+attr(new_object, 'class') <- c(class(object), 'curvish.diff')
+attr(new_object, 'comparison') <- comparison
+plot(new_object)
 ```
 
 # Coming up

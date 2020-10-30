@@ -194,3 +194,14 @@ is.curvish <- function(x) {
   inherits(x, 'curvish')
 }
 
+#' @rdname is.curvish
+#' @export
+is.curvish.param <- function(x) {
+  inherits(x, 'curvish.param')
+}
+
+#' @rdname is.curvish
+#' @export
+is.curvish.curve <- function(x) {
+  inherits(x, 'curvish.curve')
+}

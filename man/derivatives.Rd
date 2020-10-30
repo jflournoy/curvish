@@ -11,7 +11,7 @@ derivatives(
   eps = 1e-07,
   prob = 0.95,
   prob_outer = 0.99,
-  deriv_posterior = FALSE
+  deriv_posterior = TRUE
 )
 }
 \arguments{
