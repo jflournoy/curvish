@@ -19,8 +19,8 @@
 \item{robust}{If the type of summary is multimodal and this is \code{TRUE},
 this sets the parameter of central tendency to the median.}
 
-\item{range}{Two-element numeric vector specifying limits on the range of the
-posterior to consider for the plot.}
+\item{range}{Two-element numeric vector specifying limits on the X-axis range
+of the posterior to consider for the plot.}
 
 \item{mode}{If the type of summary is multimodal, default is to use mode as
 the central tendency. If this is \code{FALSE}, will use the median of the
