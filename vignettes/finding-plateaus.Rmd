@@ -399,7 +399,7 @@ plot(new_object)
 We can find the area under the curve of the derivative as a summary of total change. 
 
 ```{r}
-auc_b <- auc(deriv_b, multimodal = FALSE, prob = .95)
+auc_b <- curvish::auc(deriv_b, multimodal = FALSE, prob = .95)
 print(auc_b$param_posterior_sum)
 plot(auc_b)
 ```
