@@ -65,7 +65,7 @@ derivatives <- function(object,
   attr(r,'class') <- 'curvish'
   attr(r,'class') <- 'curvish.curve'
   attr(r, 'term') <- list(data_term = data_term, smooth_term = smooth_term)
-  attr(r, 'resolution') <- res
+  attr(r, 'resolution') <- n
   attr(r, 'prob') <- c(prob, prob_outer)
   return(r)
 }
