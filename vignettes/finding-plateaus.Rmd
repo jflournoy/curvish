@@ -394,6 +394,24 @@ attr(new_object, 'comparison') <- comparison
 plot(new_object)
 ```
 
+# AUC
+
+We can find the area under the curve of the derivative as a summary of total change. 
+
+```{r}
+auc_b <- auc(deriv_b, multimodal = FALSE, prob = .95)
+print(auc_b$param_posterior_sum)
+plot(auc_b)
+```
+
+If you want a single summary statistic, you can compute these from the posterior directly.
+
+```{r}
+mean(auc_b$param_posterior)
+median(auc_b$param_posterior)
+```
+
+
 # Coming up
 
 Find the posterior of differences from various points in the curve, or credible intervals for differences along arbitrary values.

@@ -2,6 +2,7 @@
 
 S3method(plot,curvish.curve)
 S3method(plot,curvish.param)
+export(auc)
 export(derivatives)
 export(is.curvish)
 export(is.curvish.curve)

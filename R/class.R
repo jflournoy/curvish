@@ -39,6 +39,13 @@ a_pal <- function(){
   paste0('#', c('003E51', '007DBA', 'FFFFFF', 'D6D2C4', 'B78B20'))
 }
 
+#' plot.curvish.curve
+#' 
+#' @param x An object of class \code{curvish.curve}.
+#' @param robust This sets the parameter of central tendency to the median.
+#' @param deriv Plot the derivative instead of the original curve?
+#' @param outer Use the outer credible interval bands?
+#'
 #' @export
 #' @import ggplot2
 plot.curvish.curve <- function(x, robust = FALSE, deriv = TRUE, outer = FALSE){
@@ -74,8 +81,8 @@ plot.curvish.curve <- function(x, robust = FALSE, deriv = TRUE, outer = FALSE){
 #' @param x An object of class \code{curvish.param}.
 #' @param robust If the type of summary is multimodal and this is \code{TRUE},
 #'   this sets the parameter of central tendency to the median.
-#' @param range Two-element numeric vector specifying limits on the range of the
-#'   posterior to consider for the plot.
+#' @param range Two-element numeric vector specifying limits on the X-axis range
+#'   of the posterior to consider for the plot.
 #' @param mode If the type of summary is multimodal, default is to use mode as
 #'   the central tendency. If this is \code{FALSE}, will use the median of the
 #'   posterior within the relevant portion of the HPDI.
@@ -160,6 +167,8 @@ plot.curvish.param <- function(x, robust = FALSE, range = NULL, mode = TRUE, adj
   }
 
   d$CI_group <- curvish:::contiguous_zeros(d, colname = 'CI')$index
+  
+  prob <- attr(x$param_posterior_sum, 'credMass')
 
   aplot <- ggplot(data = d, mapping = aes(x = x, y = y)) +
     geom_line() +
@@ -170,9 +179,9 @@ plot.curvish.param <- function(x, robust = FALSE, range = NULL, mode = TRUE, adj
     # geom_point(data = p_cent[p_cent$type == 'points',],
     #            aes(y = 0, x = x), color = apal[[5]]) +
     scale_fill_manual(aesthetics = c('fill', 'color'),
-                      breaks = c(TRUE, FALSE),
-                      values = apal[c(3,1)],
-                      labels = c('Inside HDI', ''),
+                      breaks = c(TRUE),
+                      values = apal[c(3,2)],
+                      labels = c(sprintf('%0.1f%% HDI', prob*100)),
                       name = '') +
 
     theme_minimal()
