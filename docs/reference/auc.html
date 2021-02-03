@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>contiguous_zeros — contiguous_zeros • curvish</title>
+<title>auc — auc • curvish</title>
 
 
 <!-- jquery -->
@@ -39,8 +39,9 @@
 
 
 
-<meta property="og:title" content="contiguous_zeros — contiguous_zeros" />
-<meta property="og:description" content="contiguous_zeros" />
+<meta property="og:title" content="auc — auc" />
+<meta property="og:description" content="Find the area under the curve of the derivative. This function uses the
+trapezoidal method." />
 
 
 
@@ -115,23 +116,43 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>contiguous_zeros</h1>
+    <h1>auc</h1>
     
-    <div class="hidden name"><code>contiguous_zeros.Rd</code></div>
+    <div class="hidden name"><code>auc.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>contiguous_zeros</p>
+    <p>Find the area under the curve of the derivative. This function uses the
+trapezoidal method.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>contiguous_zeros</span><span class='op'>(</span><span class='va'>x</span>, <span class='va'>colname</span>, indexcol <span class='op'>=</span> <span class='cn'>NULL</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>auc</span><span class='op'>(</span><span class='va'>object</span>, multimodal <span class='op'>=</span> <span class='cn'>FALSE</span>, prob <span class='op'>=</span> <span class='fl'>0.95</span>, adjust <span class='op'>=</span> <span class='fl'>1</span>, summary_only <span class='op'>=</span> <span class='cn'>FALSE</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>indexcol</th>
-      <td></td>
+      <th>object</th>
+      <td><p>An object of class <code>curvish.curve</code></p></td>
+    </tr>
+    <tr>
+      <th>multimodal</th>
+      <td><p>if the expected posterior might be multimodal, set this to
+<code>TRUE</code> so that the summary is a true, possibly discontinuous, highest
+posterior density interval.</p></td>
+    </tr>
+    <tr>
+      <th>prob</th>
+      <td><p>the proportion of mass within the HPDI</p></td>
+    </tr>
+    <tr>
+      <th>adjust</th>
+      <td><p>passed to <code><a href='https://rdrr.io/r/stats/density.html'>density</a></code> to adjust bandwidth.</p></td>
+    </tr>
+    <tr>
+      <th>summary_only</th>
+      <td><p>set this to <code>FALSE</code> if you want all samples
+returned.</p></td>
     </tr>
     </table>
 
