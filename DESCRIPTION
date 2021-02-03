@@ -1,7 +1,7 @@
 Package: curvish
 Type: Package
 Title: Uses Bayesian GAMMs to Regions Where Slopes Differ
-Version: 0.1.0
+Version: 0.1.1
 Authors@R: person("John", "Flournoy", email = "john_flournoy@g.harvard.edu",
   role = c("aut", "cre"))
 Description: Uses Bayesian generalized additive mixed models to estimate 
