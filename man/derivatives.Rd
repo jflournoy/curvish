@@ -8,9 +8,10 @@ derivatives(
   object,
   term,
   n = 200,
-  eps = 1e-07,
+  eps = 1e-05,
   prob = 0.95,
   prob_outer = 0.99,
+  order = 1,
   deriv_posterior = TRUE
 )
 }
@@ -27,10 +28,15 @@ derivatives(
 
 \item{prob_outer}{numeric; the outer density of the posterior summary.}
 
-\item{deriv_posterior}{return the posterior samples for the derivative as part of the object?}
+\item{order}{integer; the order of the derivative. Only first (\code{1}) and
+second (\code{2}) are supported.}
+
+\item{deriv_posterior}{return the posterior samples for the derivative as
+part of the object?}
 }
 \value{
-a \code{curvish} object containing summaries of the posterior derivative, posterior smooths.
+a \code{curvish} object containing summaries of the posterior
+  derivative, posterior smooths.
 }
 \description{
 Computes the derivative of a smooth term from the posterior of the smooth.

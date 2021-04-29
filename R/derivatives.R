@@ -8,9 +8,13 @@
 #' @param eps numeric; the finite difference.
 #' @param prob numeric; the density of the posterior summary.
 #' @param prob_outer numeric; the outer density of the posterior summary.
-#' @param deriv_posterior return the posterior samples for the derivative as part of the object?
+#' @param order integer; the order of the derivative. Only first (\code{1}) and
+#'   second (\code{2}) are supported.
+#' @param deriv_posterior return the posterior samples for the derivative as
+#'   part of the object?
 #'
-#' @return a \code{curvish} object containing summaries of the posterior derivative, posterior smooths.
+#' @return a \code{curvish} object containing summaries of the posterior
+#'   derivative, posterior smooths.
 #' @export
 #' @import brms
 #'
@@ -19,9 +23,10 @@ derivatives <- function(object,
                         term,
                         # newdata,
                         n = 200,
-                        eps = 1e-07,
+                        eps = 1e-05,
                         prob = .95,
                         prob_outer = .99,
+                        order = 1,
                         deriv_posterior = TRUE){
   if(!grepl('s\\(.*\\)', term)){
     data_term <- term
@@ -30,6 +35,8 @@ derivatives <- function(object,
     data_term <- gsub('s\\((.*)\\)', '\\1', term)
     smooth_term <- term
   }
+  p_deriv2_sum <- NULL
+  p_deriv2 <- NULL
   srange <- range(object$data[data_term])
   interval <- list(seq(srange[[1]], srange[[2]], length.out = n))
   names(interval) <- data_term
@@ -41,6 +48,13 @@ derivatives <- function(object,
   p <- brms::posterior_smooths(object = object, smooth = smooth_term, newdata = newd)
   p_eps <- brms::posterior_smooths(object = object, smooth = smooth_term, newdata = newd_eps)
   p_deriv <- (p_eps - p) / eps
+  if(order == 2) {
+    interval_eps2 <- interval_eps
+    interval_eps2[[1]] <- interval_eps2[[1]] + eps
+    newd_eps2 <- do.call(data.frame, c(interval_eps2, list(check.names = FALSE)))
+    p_eps2 <- brms::posterior_smooths(object = object, smooth = smooth_term, newdata = newd_eps2)
+    p_deriv2 <- ( p_eps2 - 2*p_eps + p ) / eps / eps
+  }
 
   probs <- sort(c(.5, unlist(lapply((1-c(prob, prob_outer))/2,
                                     function(x) c(0, 1) + c(1, -1)*x))))
@@ -55,12 +69,19 @@ derivatives <- function(object,
     m <- mean(x)
     data.frame(mean = m, median = q[[3]], ll = q[[1]], l = q[[2]], u = q[[4]], uu = q[[5]])
   }))
-
+  if(order == 2) {
+    p_deriv2_sum <- do.call(rbind, apply(p_deriv2, 2, function(x){
+      q <- quantile(x, probs = probs)
+      m <- mean(x)
+      data.frame(mean = m, median = q[[3]], ll = q[[1]], l = q[[2]], u = q[[4]], uu = q[[5]])
+    }))
+    p_deriv2_sum[data_term] <- interval
+  }
   p_deriv_sum[data_term] <- interval
   p_curve_sum[data_term] <- interval
-  r <- list(deriv_posterior_summary = p_deriv_sum,  smooth_posterior_summary = p_curve_sum)
+  r <- list(deriv_posterior_summary = p_deriv_sum,  deriv2_posterior_summary = p_deriv2_sum, smooth_posterior_summary = p_curve_sum)
   if(deriv_posterior){
-    r <- c(r, list(deriv_posterior = p_deriv))
+    r <- c(r, list(deriv_posterior = p_deriv, deriv2_posterior = p_deriv2))
   }
   attr(r,'class') <- 'curvish'
   attr(r,'class') <- 'curvish.curve'
