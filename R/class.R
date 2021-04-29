@@ -40,18 +40,21 @@ a_pal <- function(){
 }
 
 #' plot.curvish.curve
-#' 
+#'
 #' @param x An object of class \code{curvish.curve}.
 #' @param robust This sets the parameter of central tendency to the median.
-#' @param deriv Plot the derivative instead of the original curve?
+#' @param deriv Order of derivative to plot, if any (default 0 plots the smooth).
 #' @param outer Use the outer credible interval bands?
 #'
 #' @export
 #' @import ggplot2
-plot.curvish.curve <- function(x, robust = FALSE, deriv = TRUE, outer = FALSE){
+plot.curvish.curve <- function(x, robust = FALSE, deriv = 0, outer = FALSE){
   apal <- curvish:::a_pal()
-  if(deriv){
+  if(deriv == 1){
     d <- x$deriv_posterior_summary
+  } else if(deriv == 2){
+    if(is.null(x$deriv2_posterior_summary)) stop("No second derivative")
+    d <- x$deriv2_posterior_summary
   } else {
     d <- x$smooth_posterior_summary
   }
@@ -167,7 +170,7 @@ plot.curvish.param <- function(x, robust = FALSE, range = NULL, mode = TRUE, adj
   }
 
   d$CI_group <- curvish:::contiguous_zeros(d, colname = 'CI')$index
-  
+
   prob <- attr(x$param_posterior_sum, 'credMass')
 
   aplot <- ggplot(data = d, mapping = aes(x = x, y = y)) +
