@@ -128,9 +128,10 @@
   <span class='va'>object</span>,
   <span class='va'>term</span>,
   n <span class='op'>=</span> <span class='fl'>200</span>,
-  eps <span class='op'>=</span> <span class='fl'>1e-07</span>,
+  eps <span class='op'>=</span> <span class='fl'>1e-05</span>,
   prob <span class='op'>=</span> <span class='fl'>0.95</span>,
   prob_outer <span class='op'>=</span> <span class='fl'>0.99</span>,
+  order <span class='op'>=</span> <span class='fl'>1</span>,
   deriv_posterior <span class='op'>=</span> <span class='cn'>TRUE</span>
 <span class='op'>)</span></pre>
 
@@ -162,14 +163,21 @@
       <td><p>numeric; the outer density of the posterior summary.</p></td>
     </tr>
     <tr>
+      <th>order</th>
+      <td><p>integer; the order of the derivative. Only first (<code>1</code>) and
+second (<code>2</code>) are supported.</p></td>
+    </tr>
+    <tr>
       <th>deriv_posterior</th>
-      <td><p>return the posterior samples for the derivative as part of the object?</p></td>
+      <td><p>return the posterior samples for the derivative as
+part of the object?</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>a <code>curvish</code> object containing summaries of the posterior derivative, posterior smooths.</p>
+    <p>a <code>curvish</code> object containing summaries of the posterior
+  derivative, posterior smooths.</p>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

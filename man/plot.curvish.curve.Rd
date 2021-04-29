@@ -4,14 +4,14 @@
 \alias{plot.curvish.curve}
 \title{plot.curvish.curve}
 \usage{
-\method{plot}{curvish.curve}(x, robust = FALSE, deriv = TRUE, outer = FALSE)
+\method{plot}{curvish.curve}(x, robust = FALSE, deriv = 0, outer = FALSE)
 }
 \arguments{
 \item{x}{An object of class \code{curvish.curve}.}
 
 \item{robust}{This sets the parameter of central tendency to the median.}
 
-\item{deriv}{Plot the derivative instead of the original curve?}
+\item{deriv}{Order of derivative to plot, if any (default 0 plots the smooth).}
 
 \item{outer}{Use the outer credible interval bands?}
 }

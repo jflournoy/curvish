@@ -326,7 +326,11 @@ blocks$block_lengths
 
 ```
 
-# Differences along the curve
+# Coming up!
+
+Works in progress
+
+## Differences along the curve
 
 ```{r}
 #Find differences along the curve from a particular point on that curve. For
@@ -338,9 +342,9 @@ blocks$block_lengths
 #returns a single Y value which will map to a single X value. You should also be
 #able to pass it a curvish.param object.
 object = deriv_b2
-comparison = min_p
+# comparison = min_p
 comparison = max
-comparison = 5
+# comparison = 5
 robust = TRUE
 prob = .95
 prob_outer = .99
@@ -388,13 +392,15 @@ diff_deriv_summary[[data_term]] <- object$deriv_posterior_summary[[data_term]]
 new_object <- list(deriv_posterior_summary = diff_deriv_summary, 
                    smooth_posterior_summary = object$smooth_posterior_summary,
                    deriv_posterior = diff_deriv)
-mostattributes(new_object) <- attributes(object)
+mostattributes(new_object) <- c(list(names = names(new_object)), attributes(object)[-1])
 attr(new_object, 'class') <- c(class(object), 'curvish.diff')
 attr(new_object, 'comparison') <- comparison
-plot(new_object)
+library(patchwork)
+plot(new_object, deriv = 1) + 
+plot(deriv_b2, deriv = 1) + plot_layout(ncol = 1)
 ```
 
-# AUC
+## AUC
 
 We can find the area under the curve of the derivative as a summary of total change. 
 
@@ -412,7 +418,7 @@ median(auc_b$param_posterior)
 ```
 
 
-# Coming up
+## And more
 
 Find the posterior of differences from various points in the curve, or credible intervals for differences along arbitrary values.
 
@@ -435,7 +441,7 @@ deriv1_diff_from_max_post_summary[, compared_to_max := case_when(upper < 0 ~ 'le
 deriv1_post_summary <- deriv1_post_summary[deriv1_diff_from_max_post_summary[, .(Age, compared_to_max)], on = 'Age']
 ```
 
-# Second derivative
+## Second derivative
 
 ```{r}
 #Taking the second derivative gets noisy if eps is very small.

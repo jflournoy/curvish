@@ -107,7 +107,7 @@ plot.curvish.param <- function(x, robust = FALSE, range = NULL, mode = TRUE, adj
 
   p_cent <- NULL
 
-  if(attr(x, 'multimodal')){
+  if(!is.null(attr(x, 'multimodal')) && attr(x, 'multimodal')){
     orig_adjust <- attr(x, 'adjust')
     if(is.null(adjust) & is.null(range)){
       adensity <- attr(x, 'density')
