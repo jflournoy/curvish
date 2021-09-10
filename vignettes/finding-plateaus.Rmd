@@ -1,13 +1,16 @@
 ---
 title: "Finding Plateaus"
-output: rmarkdown::html_vignette
-vignette: >
-  %\VignetteIndexEntry{Finding Plateaus}
-  %\VignetteEngine{knitr::rmarkdown}
+output:
+  rmarkdown::pdf_document: default
+  rmarkdown::html_vignette: default
+vignette: |
+  %\VignetteIndexEntry{Finding Plateaus} 
+  %\VignetteEngine{knitr::rmarkdown} 
   %\VignetteEncoding{UTF-8}
 ---
 
 ```{r, include = FALSE}
+
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
