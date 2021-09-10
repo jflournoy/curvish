@@ -39,7 +39,7 @@
       <ul class="nav navbar-nav">
 <li>
   <a href="../index.html">
-    <span class="fas fa fas fa-home fa-lg"></span>
+    <span class="fas fa-home fa-lg"></span>
      
   </a>
 </li>
@@ -89,7 +89,7 @@
 <span class="co">#&gt; Loading required package: nlme</span>
 <span class="co">#&gt; This is mgcv 1.8-31. For overview type 'help("mgcv-package")'.</span>
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://gavinsimpson.github.io/gratia">gratia</a></span><span class="op">)</span>
-<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://ggplot2.tidyverse.org">ggplot2</a></span><span class="op">)</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org">ggplot2</a></span><span class="op">)</span>
 
 
 <span class="co">#Below from ?gam</span>
@@ -198,6 +198,7 @@
 <div class="sourceCode" id="cb7"><pre class="downlit">
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/paul-buerkner/brms">brms</a></span><span class="op">)</span>
 <span class="co">#&gt; Loading required package: Rcpp</span>
+<span class="co">#&gt; This version of bslib is designed to work with shiny version 1.5.0.9007 or higher.</span>
 <span class="co">#&gt; Loading 'brms' package (version 2.15.0). Useful instructions</span>
 <span class="co">#&gt; can be found by typing help('brms'). A more detailed introduction</span>
 <span class="co">#&gt; to the package is available through vignette('brms_overview').</span>
@@ -272,8 +273,7 @@
                     values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">'#222222'</span>, <span class="va">cpal</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">2</span>, <span class="fl">4</span><span class="op">:</span><span class="fl">5</span><span class="op">)</span><span class="op">]</span><span class="op">)</span>,
                     name <span class="op">=</span> <span class="st">'Type of interval'</span><span class="op">)</span> <span class="op">+</span> 
   <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">'x2'</span>, y <span class="op">=</span> <span class="st">'y'</span><span class="op">)</span> <span class="op">+</span> 
-  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_minimal</a></span><span class="op">(</span><span class="op">)</span>
-<span class="co">#&gt; Warning: Ignoring unknown aesthetics: y</span></pre></div>
+  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_minimal</a></span><span class="op">(</span><span class="op">)</span></pre></div>
 <p><img src="finding-plateaus_files/figure-html/unnamed-chunk-4-4.png" width="700"></p>
 <div id="plot-method" class="section level2">
 <h2 class="hasAnchor">
@@ -542,10 +542,9 @@ B"</span>, guides <span class="op">=</span> <span class="st">"collect"</span><sp
 <span class="co">#&gt; 4 30   -1   FALSE 0.6873160711 0.8326659</span>
 <span class="co">#&gt; 5 33    0    TRUE 0.8376780090 0.9980641</span></pre></div>
 </div>
-<div id="coming-up" class="section level1">
+<div id="works-in-progress" class="section level1">
 <h1 class="hasAnchor">
-<a href="#coming-up" class="anchor"></a>Coming up!</h1>
-<p>Works in progress</p>
+<a href="#works-in-progress" class="anchor"></a>Works in progress</h1>
 <div id="differences-along-the-curve" class="section level2">
 <h2 class="hasAnchor">
 <a href="#differences-along-the-curve" class="anchor"></a>Differences along the curve</h2>
@@ -637,13 +636,47 @@ B"</span>, guides <span class="op">=</span> <span class="st">"collect"</span><sp
 <span class="co">#&gt; [1] 1.879207</span>
 <span class="fu"><a href="https://rdrr.io/r/stats/median.html">median</a></span><span class="op">(</span><span class="va">auc_b</span><span class="op">$</span><span class="va">param_posterior</span><span class="op">)</span>
 <span class="co">#&gt; [1] 1.883251</span></pre></div>
+<p>This is just a way to recapitulate the quantity you would find by taking the difference between the posterior estimates end of the curve and the beginning of the curve.</p>
+</div>
+<div id="second-derivative" class="section level2">
+<h2 class="hasAnchor">
+<a href="#second-derivative" class="anchor"></a>Second derivative</h2>
+<div class="sourceCode" id="cb33"><pre class="downlit">
+<span class="co">#Taking the second derivative gets noisy if eps is very small.</span>
+<span class="va">deriv_b</span> <span class="op">&lt;-</span> <span class="fu">curvish</span><span class="fu">::</span><span class="fu"><a href="../reference/derivatives.html">derivatives</a></span><span class="op">(</span><span class="va">fit_b</span>, term <span class="op">=</span> <span class="st">'x2'</span>, n <span class="op">=</span> <span class="va">res</span>, eps <span class="op">=</span> <span class="fl">1e-6</span>, order <span class="op">=</span> <span class="fl">2</span><span class="op">)</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://patchwork.data-imaginist.com">patchwork</a></span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/graphics/plot.html">plot</a></span><span class="op">(</span><span class="va">deriv_b</span>, deriv <span class="op">=</span> <span class="fl">0</span><span class="op">)</span> <span class="op">+</span> 
+<span class="fu"><a href="https://rdrr.io/r/graphics/plot.html">plot</a></span><span class="op">(</span><span class="va">deriv_b</span>, deriv <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">+</span>
+<span class="fu"><a href="https://rdrr.io/r/graphics/plot.html">plot</a></span><span class="op">(</span><span class="va">deriv_b</span>, deriv <span class="op">=</span> <span class="fl">2</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://patchwork.data-imaginist.com/reference/plot_layout.html">plot_layout</a></span><span class="op">(</span>ncol <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></pre></div>
+<p><img src="finding-plateaus_files/figure-html/unnamed-chunk-19-1.png" width="700"></p>
+<p>How wiggly is it? In other words how much does the slope change? If the slope is constant the second derivative is 0, so any absolute deviation from that indicates some wiggle.</p>
+<div class="sourceCode" id="cb34"><pre class="downlit">
+<span class="fu"><a href="https://rdrr.io/r/base/dim.html">dim</a></span><span class="op">(</span><span class="va">deriv_b</span><span class="op">$</span><span class="va">deriv2_posterior</span><span class="op">)</span>
+<span class="co">#&gt; [1] 10000   200</span>
+<span class="co">#should turn this into a function</span>
+<span class="va">mean_deriv2_post</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html">apply</a></span><span class="op">(</span><span class="va">deriv_b</span><span class="op">$</span><span class="va">deriv2_posterior</span>, <span class="fl">1</span>, <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">abs</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+<span class="fu">bayesplot</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/bayesplot/reference/MCMC-intervals.html">mcmc_areas</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/array.html">array</a></span><span class="op">(</span><span class="va">mean_deriv2_post</span>, dim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">mean_deriv2_post</span><span class="op">)</span>,<span class="fl">1</span><span class="op">)</span>, dimnames <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="cn">NULL</span>, <span class="st">'mean second deriv'</span><span class="op">)</span><span class="op">)</span>, point_est <span class="op">=</span> <span class="st">'median'</span>,
+                      prob <span class="op">=</span> <span class="fl">.95</span>, prob_outer <span class="op">=</span> <span class="fl">.99</span><span class="op">)</span>
+<span class="co">#&gt; Warning: `expand_scale()` is deprecated; use `expansion()` instead.</span></pre></div>
+<p><img src="finding-plateaus_files/figure-html/unnamed-chunk-20-1.png" width="700"></p>
+<p>We can also apply the AUC method to the second derivative (see below). Both of these can be applied with and without taking the absolute value of each contributing estimate of the area.</p>
+<div class="sourceCode" id="cb35"><pre class="downlit">
+<span class="va">auc_b_d2</span> <span class="op">&lt;-</span> <span class="fu">curvish</span><span class="fu">::</span><span class="fu"><a href="../reference/auc.html">auc</a></span><span class="op">(</span><span class="va">deriv_b</span>, multimodal <span class="op">=</span> <span class="cn">FALSE</span>, prob <span class="op">=</span> <span class="fl">.95</span>, deriv <span class="op">=</span> <span class="fl">2</span>, abs <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/base/print.html">print</a></span><span class="op">(</span><span class="va">auc_b_d2</span><span class="op">$</span><span class="va">param_posterior_sum</span><span class="op">)</span>
+<span class="co">#&gt;         auc_x2</span>
+<span class="co">#&gt; lower 143.5735</span>
+<span class="co">#&gt; upper 301.6828</span>
+<span class="co">#&gt; attr(,"credMass")</span>
+<span class="co">#&gt; [1] 0.95</span>
+<span class="fu"><a href="https://rdrr.io/r/graphics/plot.html">plot</a></span><span class="op">(</span><span class="va">auc_b_d2</span><span class="op">)</span></pre></div>
+<p><img src="finding-plateaus_files/figure-html/unnamed-chunk-21-1.png" width="700"></p>
 </div>
 <div id="and-more" class="section level2">
 <h2 class="hasAnchor">
 <a href="#and-more" class="anchor"></a>And more</h2>
 <p>Find the posterior of differences from various points in the curve, or credible intervals for differences along arbitrary values.</p>
 <p>Also, combine objects like posteriors for max slopes and the slopes themselves to make plots of regions of the curve that have certain properties.</p>
-<div class="sourceCode" id="cb33"><pre class="downlit">
+<div class="sourceCode" id="cb36"><pre class="downlit">
 <span class="va">deriv1_age_at_max_post</span> <span class="op">&lt;-</span> <span class="va">c_smooths_1_sample_data</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="st">'max_age'</span> <span class="op">=</span> <span class="va">Age</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/which.html">which</a></span><span class="op">(</span><span class="va">deriv1</span> <span class="op">==</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">max</a></span><span class="op">(</span><span class="va">deriv1</span><span class="op">)</span><span class="op">)</span><span class="op">]</span><span class="op">)</span>,
                                                   by <span class="op">=</span> <span class="st">'sample__'</span><span class="op">]</span>
 <span class="va">age_at_max_med_deriv</span> <span class="op">&lt;-</span> <span class="va">deriv1_post_summary</span><span class="op">[</span><span class="va">deriv1</span> <span class="op">==</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">max</a></span><span class="op">(</span><span class="va">deriv1</span><span class="op">)</span>, <span class="va">Age</span><span class="op">]</span>
@@ -658,30 +691,6 @@ B"</span>, guides <span class="op">=</span> <span class="st">"collect"</span><sp
                                                                  <span class="cn">TRUE</span> <span class="op">~</span> <span class="st">'as_steep'</span><span class="op">)</span><span class="op">]</span>
 
 <span class="va">deriv1_post_summary</span> <span class="op">&lt;-</span> <span class="va">deriv1_post_summary</span><span class="op">[</span><span class="va">deriv1_diff_from_max_post_summary</span><span class="op">[</span>, <span class="fu">.</span><span class="op">(</span><span class="va">Age</span>, <span class="va">compared_to_max</span><span class="op">)</span><span class="op">]</span>, on <span class="op">=</span> <span class="st">'Age'</span><span class="op">]</span></pre></div>
-</div>
-<div id="second-derivative" class="section level2">
-<h2 class="hasAnchor">
-<a href="#second-derivative" class="anchor"></a>Second derivative</h2>
-<div class="sourceCode" id="cb34"><pre class="downlit">
-<span class="co">#Taking the second derivative gets noisy if eps is very small.</span>
-<span class="va">deriv_b</span> <span class="op">&lt;-</span> <span class="fu">curvish</span><span class="fu">::</span><span class="fu"><a href="../reference/derivatives.html">derivatives</a></span><span class="op">(</span><span class="va">fit_b</span>, term <span class="op">=</span> <span class="st">'x2'</span>, n <span class="op">=</span> <span class="va">res</span>, eps <span class="op">=</span> <span class="fl">1e-6</span>, order <span class="op">=</span> <span class="fl">2</span><span class="op">)</span>
-<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://patchwork.data-imaginist.com">patchwork</a></span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/graphics/plot.html">plot</a></span><span class="op">(</span><span class="va">deriv_b</span>, deriv <span class="op">=</span> <span class="fl">0</span><span class="op">)</span> <span class="op">+</span> 
-<span class="fu"><a href="https://rdrr.io/r/graphics/plot.html">plot</a></span><span class="op">(</span><span class="va">deriv_b</span>, deriv <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">+</span>
-<span class="fu"><a href="https://rdrr.io/r/graphics/plot.html">plot</a></span><span class="op">(</span><span class="va">deriv_b</span>, deriv <span class="op">=</span> <span class="fl">2</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://patchwork.data-imaginist.com/reference/plot_layout.html">plot_layout</a></span><span class="op">(</span>ncol <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></pre></div>
-<p><img src="finding-plateaus_files/figure-html/unnamed-chunk-20-1.png" width="700"></p>
-<div class="sourceCode" id="cb35"><pre class="downlit">
-
-<span class="co">#How wiggly is it? In other words how much does the slope change? If the slope</span>
-<span class="co">#is constant the second derivative is 0, so any absolute deviation from that</span>
-<span class="co">#indicates some wiggle.</span>
-<span class="fu"><a href="https://rdrr.io/r/base/dim.html">dim</a></span><span class="op">(</span><span class="va">deriv_b</span><span class="op">$</span><span class="va">deriv2_posterior</span><span class="op">)</span>
-<span class="co">#&gt; [1] 10000   200</span>
-<span class="co">#apply accross time-points, rather than iterations</span>
-<span class="va">mean_deriv2_post</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html">apply</a></span><span class="op">(</span><span class="va">deriv_b</span><span class="op">$</span><span class="va">deriv2_posterior</span>, <span class="fl">2</span>, <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">abs</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
-<span class="fu">bayesplot</span><span class="fu">::</span><span class="fu"><a href="https://mc-stan.org/bayesplot/reference/MCMC-intervals.html">mcmc_areas</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/array.html">array</a></span><span class="op">(</span><span class="va">mean_deriv2_post</span>, dim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">10000</span>,<span class="fl">1</span><span class="op">)</span>, dimnames <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="cn">NULL</span>, <span class="st">'mean second deriv'</span><span class="op">)</span><span class="op">)</span>, point_est <span class="op">=</span> <span class="st">'median'</span>,
-                      prob <span class="op">=</span> <span class="fl">.95</span>, prob_outer <span class="op">=</span> <span class="fl">.99</span><span class="op">)</span></pre></div>
-<p><img src="finding-plateaus_files/figure-html/unnamed-chunk-20-2.png" width="700"></p>
 </div>
 </div>
   </div>

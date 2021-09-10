@@ -16,7 +16,7 @@
 #' @export
 #'
 #' @examples
-auc <- function(object, multimodal = FALSE, prob = .95, adjust = 1, summary_only = FALSE){
+auc <- function(object, multimodal = FALSE, prob = .95, deriv = 1, abs = FALSE, adjust = 1, summary_only = FALSE){
   #note that if the derivative falls below zero, this will subtract area.
   if(!inherits(object, 'curvish.curve')){
     stop('Object must be of class "curvish.curve"')
@@ -24,15 +24,30 @@ auc <- function(object, multimodal = FALSE, prob = .95, adjust = 1, summary_only
   if(is.null(object$deriv_posterior)){
     stop('Object must have derivative posterior. Rerun `curvish::derivatives()` with `deriv_posterior = TRUE`.')
   }
-
   data_term <- attr(object, which = 'term')$data_term
-  h <- diff(object$deriv_posterior_summary[[data_term]])
 
-  posterior_auc <- apply(object$deriv_posterior, 1, function(iter){
+  if(deriv == 1){
+    d <- object$deriv_posterior
+    h <- diff(object$deriv_posterior_summary[[data_term]])
+  } else if(deriv == 2){
+    if(is.null(object$deriv2_posterior)) stop("No second derivative")
+    d <- object$deriv2_posterior
+    h <- diff(object$deriv2_posterior_summary[[data_term]])
+  } else {
+    d <- object$smooth_posterior
+    h <- diff(object$smooth_posterior_summary[[data_term]])
+  }
+
+  posterior_auc <- apply(d, 1, function(iter){
     a <- iter[1:(length(iter) - 1)]
     b <- iter[-1]
     trapazoid_areas <- h * (a + b) / 2
-    return(sum(trapazoid_areas))
+    if(abs){
+      s <- sum(abs(trapazoid_areas))
+    } else {
+      s <- sum(trapazoid_areas)
+    }
+    return(s)
   })
 
   adensity <- NULL
