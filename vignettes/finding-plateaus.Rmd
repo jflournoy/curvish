@@ -1,8 +1,8 @@
 ---
 title: "Finding Plateaus"
 output:
-  rmarkdown::html_vignette: default
   rmarkdown::pdf_document: default
+  rmarkdown::html_vignette: default
 vignette: |
   %\VignetteIndexEntry{Finding Plateaus} 
   %\VignetteEncoding{UTF-8}
@@ -293,7 +293,60 @@ plot(max_lin_uni, histogram = TRUE, adjust = 1) +
   patchwork::plot_layout(ncol = 1)
 ```
 
-# Regions along the slope
+## AUC
+
+We can find the area under the curve of the derivative as a summary of total change. 
+
+```{r}
+auc_b <- curvish::auc(deriv_b, multimodal = FALSE, prob = .95)
+print(auc_b$param_posterior_sum)
+plot(auc_b)
+```
+
+If you want a single summary statistic, you can compute these from the posterior directly.
+
+```{r}
+mean(auc_b$param_posterior)
+median(auc_b$param_posterior)
+```
+
+This is just a way to recapitulate the quantity you would find by taking the difference between the posterior estimates end of the curve and the beginning of the curve. 
+
+## Second derivative
+
+```{r}
+#Taking the second derivative gets noisy if eps is very small.
+deriv_b <- curvish::derivatives(fit_b, term = 'x2', n = res, eps = 1e-6, order = 2)
+library(patchwork)
+plot(deriv_b, deriv = 0) + 
+plot(deriv_b, deriv = 1) +
+plot(deriv_b, deriv = 2) + plot_layout(ncol = 1)
+```
+
+How wiggly is it? In other words how much does the slope change? If the slope
+is constant the second derivative is 0, so any absolute deviation from that
+indicates some wiggle.
+
+```{r}
+dim(deriv_b$deriv2_posterior)
+#should turn this into a function
+mean_deriv2_post <- apply(deriv_b$deriv2_posterior, 1, function(x) mean(abs(x)))
+bayesplot::mcmc_areas(array(mean_deriv2_post, dim = c(length(mean_deriv2_post),1), dimnames = list(NULL, 'mean second deriv')), point_est = 'median',
+                      prob = .95, prob_outer = .99)
+```
+
+We can also apply the AUC method to the second derivative (see below). Both of these can be applied with and without taking the absolute value of each contributing estimate of the area.
+
+```{r}
+auc_b_d2 <- curvish::auc(deriv_b, multimodal = FALSE, prob = .95, deriv = 2, abs = TRUE)
+print(auc_b_d2$param_posterior_sum)
+plot(auc_b_d2)
+```
+
+
+# Works in progress
+
+## Regions along the slope
 
 ```{r}
 deriv_b2 <- curvish::derivatives(fit_b, term = 'x2', n = res, eps = eps, deriv_posterior = TRUE, prob = .95, prob_outer = .999)
@@ -328,8 +381,6 @@ message(sprintf('P(Type-S) = %0.1f%% in confidence regions.', confident_type_S_p
 blocks$block_lengths
 
 ```
-
-# Works in progress
 
 ## Differences along the curve
 
@@ -400,57 +451,6 @@ library(patchwork)
 plot(new_object, deriv = 1) + 
 plot(deriv_b2, deriv = 1) + plot_layout(ncol = 1)
 ```
-
-## AUC
-
-We can find the area under the curve of the derivative as a summary of total change. 
-
-```{r}
-auc_b <- curvish::auc(deriv_b, multimodal = FALSE, prob = .95)
-print(auc_b$param_posterior_sum)
-plot(auc_b)
-```
-
-If you want a single summary statistic, you can compute these from the posterior directly.
-
-```{r}
-mean(auc_b$param_posterior)
-median(auc_b$param_posterior)
-```
-
-This is just a way to recapitulate the quantity you would find by taking the difference between the posterior estimates end of the curve and the beginning of the curve. 
-
-## Second derivative
-
-```{r}
-#Taking the second derivative gets noisy if eps is very small.
-deriv_b <- curvish::derivatives(fit_b, term = 'x2', n = res, eps = 1e-6, order = 2)
-library(patchwork)
-plot(deriv_b, deriv = 0) + 
-plot(deriv_b, deriv = 1) +
-plot(deriv_b, deriv = 2) + plot_layout(ncol = 1)
-```
-
-How wiggly is it? In other words how much does the slope change? If the slope
-is constant the second derivative is 0, so any absolute deviation from that
-indicates some wiggle.
-
-```{r}
-dim(deriv_b$deriv2_posterior)
-#should turn this into a function
-mean_deriv2_post <- apply(deriv_b$deriv2_posterior, 1, function(x) mean(abs(x)))
-bayesplot::mcmc_areas(array(mean_deriv2_post, dim = c(length(mean_deriv2_post),1), dimnames = list(NULL, 'mean second deriv')), point_est = 'median',
-                      prob = .95, prob_outer = .99)
-```
-
-We can also apply the AUC method to the second derivative (see below). Both of these can be applied with and without taking the absolute value of each contributing estimate of the area.
-
-```{r}
-auc_b_d2 <- curvish::auc(deriv_b, multimodal = FALSE, prob = .95, deriv = 2, abs = TRUE)
-print(auc_b_d2$param_posterior_sum)
-plot(auc_b_d2)
-```
-
 
 ## And more
 
