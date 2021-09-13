@@ -494,9 +494,10 @@ B"</span>, guides <span class="op">=</span> <span class="st">"collect"</span><sp
 <p><img src="finding-plateaus_files/figure-html/unnamed-chunk-14-1.png" width="700"></p>
 </div>
 </div>
-<div id="auc" class="section level2">
-<h2 class="hasAnchor">
-<a href="#auc" class="anchor"></a>AUC</h2>
+</div>
+<div id="auc" class="section level1">
+<h1 class="hasAnchor">
+<a href="#auc" class="anchor"></a>AUC</h1>
 <p>We can find the area under the curve of the derivative as a summary of total change.</p>
 <div class="sourceCode" id="cb27"><pre class="downlit">
 <span class="va">auc_b</span> <span class="op">&lt;-</span> <span class="fu">curvish</span><span class="fu">::</span><span class="fu"><a href="../reference/auc.html">auc</a></span><span class="op">(</span><span class="va">deriv_b</span>, multimodal <span class="op">=</span> <span class="cn">FALSE</span>, prob <span class="op">=</span> <span class="fl">.95</span><span class="op">)</span>
@@ -516,9 +517,9 @@ B"</span>, guides <span class="op">=</span> <span class="st">"collect"</span><sp
 <span class="co">#&gt; [1] 1.883251</span></pre></div>
 <p>This is just a way to recapitulate the quantity you would find by taking the difference between the posterior estimates end of the curve and the beginning of the curve.</p>
 </div>
-<div id="second-derivative" class="section level2">
-<h2 class="hasAnchor">
-<a href="#second-derivative" class="anchor"></a>Second derivative</h2>
+<div id="second-derivative" class="section level1">
+<h1 class="hasAnchor">
+<a href="#second-derivative" class="anchor"></a>Second derivative</h1>
 <div class="sourceCode" id="cb29"><pre class="downlit">
 <span class="co">#Taking the second derivative gets noisy if eps is very small.</span>
 <span class="va">deriv_b</span> <span class="op">&lt;-</span> <span class="fu">curvish</span><span class="fu">::</span><span class="fu"><a href="../reference/derivatives.html">derivatives</a></span><span class="op">(</span><span class="va">fit_b</span>, term <span class="op">=</span> <span class="st">'x2'</span>, n <span class="op">=</span> <span class="va">res</span>, eps <span class="op">=</span> <span class="fl">1e-6</span>, order <span class="op">=</span> <span class="fl">2</span><span class="op">)</span>
@@ -548,7 +549,6 @@ B"</span>, guides <span class="op">=</span> <span class="st">"collect"</span><sp
 <span class="co">#&gt; [1] 0.95</span>
 <span class="fu"><a href="https://rdrr.io/r/graphics/plot.html">plot</a></span><span class="op">(</span><span class="va">auc_b_d2</span><span class="op">)</span></pre></div>
 <p><img src="finding-plateaus_files/figure-html/unnamed-chunk-19-1.png" width="700"></p>
-</div>
 </div>
 <div id="works-in-progress" class="section level1">
 <h1 class="hasAnchor">

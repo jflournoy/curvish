@@ -293,7 +293,7 @@ plot(max_lin_uni, histogram = TRUE, adjust = 1) +
   patchwork::plot_layout(ncol = 1)
 ```
 
-## AUC
+# AUC
 
 We can find the area under the curve of the derivative as a summary of total change. 
 
@@ -312,7 +312,7 @@ median(auc_b$param_posterior)
 
 This is just a way to recapitulate the quantity you would find by taking the difference between the posterior estimates end of the curve and the beginning of the curve. 
 
-## Second derivative
+# Second derivative
 
 ```{r}
 #Taking the second derivative gets noisy if eps is very small.
