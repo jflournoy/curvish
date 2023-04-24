@@ -32,7 +32,7 @@ derivatives <- function(object,
     data_term <- term
     smooth_term <- sprintf('s(%s)', term)
   } else {
-    data_term <- gsub('s\\((.*)\\)', '\\1', term)
+    data_term <- gsub('s\\((.*?)(,.*)*\\)', '\\1', term)
     smooth_term <- term
   }
   p_deriv2_sum <- NULL
